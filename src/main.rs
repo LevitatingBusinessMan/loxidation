@@ -2,6 +2,9 @@ mod chunk;
 use chunk::Chunk;
 use chunk::op_codes;
 
+mod vm;
+use vm::{VM,interpret};
+
 fn main() {
     let mut new_chunk = Chunk::new();
     
@@ -11,4 +14,6 @@ fn main() {
     new_chunk.push_op(op_codes::RETURN, 123);
 
     println!("{}", new_chunk.disassemble("new_chunk"));
+
+    let vm = interpret(new_chunk);
 }

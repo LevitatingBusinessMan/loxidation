@@ -2,13 +2,19 @@ pub mod op_codes;
 pub mod value;
 
 use value::Value;
-use op_codes::{OpCode,Line};
+use op_codes::OpCode;
 
 //Note, the current implementation in rust makes a vector double capacity when full
 pub struct Chunk {
 	pub code: Vec<OpCode>,
 	pub constants: Vec<Value>,
 	pub lines: Vec<Line>
+}
+
+///The linenumber and the index of the last op of this line
+pub struct Line {
+	pub number: u32,
+	pub length: usize
 }
 
 impl Chunk {

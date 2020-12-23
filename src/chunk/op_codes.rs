@@ -3,12 +3,6 @@
 use crate::chunk::Chunk;
 use crate::chunk::value::{Value,ValueMethods};
 
-///The linenumber and the index of the last op of this line
-pub struct Line {
-	pub number: u32,
-	pub length: usize
-}
-
 pub type OpCode = u8;
 
 //At first this was an enum with discriminant values
@@ -18,7 +12,7 @@ pub const CONSTANT: u8 = 0x2;
 
 //Possibly change the offset here to be a reference
 pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
-	let OP_offset = offset;
+	let op_offset = offset;
 	let mut offset = offset;
 	let op = chunk.code[offset];
 
@@ -30,7 +24,7 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 
 			//First op has no previous line struct
 			//to see if it is in fact the first of its line
-			if OP_offset == 0 {
+			if op_offset == 0 {
 				break format!("{:>4}", line.number);
 			}
 			if i > 0 {
@@ -62,7 +56,7 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		_ => "unknown".to_owned()
 	};
 
-	let line = format!("{} {:04} {}\n",line_n_str, OP_offset, name);
+	let line = format!("{} {:04} {}\n",line_n_str, op_offset, name);
 	return (line, offset+1)
 }
 
