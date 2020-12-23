@@ -2,18 +2,21 @@ pub mod op_codes;
 pub mod value;
 
 use value::Value;
+use op_codes::OpCode;
 
 //Note, the current implementation in rust makes a vector double capacity when full
 pub struct Chunk {
-	pub code: Vec<u8>,
-	pub constants: Vec<Value>
+	pub code: Vec<OpCode>,
+	pub constants: Vec<Value>,
+	pub lines: Vec<u32>
 }
 
 impl Chunk {
 	pub fn new() -> Chunk {
 		Chunk{
-			code: Vec::<u8>::new(),
-			constants: Vec::<Value>::new()
+			code: Vec::<OpCode>::new(),
+			constants: Vec::<Value>::new(),
+			lines: Vec::<u32>::new()
 		}
 	}
 	pub fn disassemble(&self, name: &str) -> String {
@@ -35,6 +38,12 @@ impl Chunk {
 	pub fn push_constant(&mut self, constant: f64) -> usize {
 		self.constants.push(constant);
 		self.constants.len() -1
+	}
+
+	pub fn push_op(&mut self, op: OpCode, line: u32) -> usize {
+		self.code.push(op);
+		self.lines.push(line);
+		return self.code.len() -1
 	}
 }
 
