@@ -1,10 +1,14 @@
 mod chunk;
 use chunk::Chunk;
-use chunk::op_codes::OpCode;
-use chunk::DisassembleChunk;
+use chunk::op_codes;
 
 fn main() {
     let mut new_chunk = Chunk::new();
-    new_chunk.push(OpCode::RETURN);
+    new_chunk.code.push(op_codes::RETURN);
+    
+    let constant_index  = new_chunk.push_constant(1.2);
+    new_chunk.code.push(op_codes::CONSTANT);
+    new_chunk.code.push(constant_index as u8);
+    
     println!("{}", new_chunk.disassemble("new_chunk"));
 }

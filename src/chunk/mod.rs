@@ -1,12 +1,46 @@
 pub mod op_codes;
+pub mod value;
 
-use op_codes::OpCode;
-
+use value::Value;
 
 //Note, the current implementation in rust makes a vector double capacity when full
-pub type Chunk = Vec<OpCode>;
+pub struct Chunk {
+	pub code: Vec<u8>,
+	pub constants: Vec<Value>
+}
 
-//I can't impl a method directly because this is an alias type
+impl Chunk {
+	pub fn new() -> Chunk {
+		Chunk{
+			code: Vec::<u8>::new(),
+			constants: Vec::<Value>::new()
+		}
+	}
+	pub fn disassemble(&self, name: &str) -> String {
+		//header
+		let mut str = format!("== {} ==\n", name);
+
+		let mut offset = 0;
+		while offset < self.code.len() {
+			let (line, new_offset) = op_codes::disassemble(self, offset);
+			offset = new_offset as usize;
+			str.push_str(line.as_str());
+		}
+
+		str
+	}
+
+	//Pushes the constant and gives the index
+	//Really unnecesarry but it saves a line
+	pub fn push_constant(&mut self, constant: f64) -> usize {
+		self.constants.push(constant);
+		self.constants.len() -1
+	}
+}
+
+//pub type Chunk = Vec<OpCode>;
+
+/* //I can't impl a method directly because this is an alias type
 pub trait DisassembleChunk {
 	fn disassemble(&self, name: &str) -> String;
 }
@@ -26,7 +60,7 @@ impl DisassembleChunk for Chunk {
 
 		str
 	}
-}
+} */
 
 /*
 If I want methods I can also use a newtype but this will mess with the vector methods
