@@ -36,9 +36,9 @@ impl VM {
 		macro_rules! pop { () => {self.stack.pop().unwrap()};}
 		macro_rules! push {($value:expr) => {self.stack.push($value)};}
 		macro_rules! binary_op {($op:tt) => {{
-			let b = self.stack.pop().unwrap();
-			let a = self.stack.pop().unwrap();
-			self.stack.push(a $op b);
+			let b = pop!();
+			let a = pop!();
+			push!(a $op b);
 		}};}
 		macro_rules! read_byte {() => {{
 			self.ip += 1;
@@ -62,13 +62,15 @@ impl VM {
 					println!("{}\n", pop!());
 					break Result::OK;
 				},
-				CONSTANT => {
-					push!(read_constant!());
-				},
+				CONSTANT => push!(read_constant!()),
 				NEGATE => {
-					push!(-pop!());
+					let new = -pop!();push!(new);
+					//push!(-pop!()) cause second mutable borrow
 				},
 				ADD => binary_op!(+),
+				SUBTRACT => binary_op!(-),
+				MULTIPLY => binary_op!(*),
+				DIVIDE => binary_op!(/),
 				_ => break Result::RUNTIME_ERROR
 			}
 		}
