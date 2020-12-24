@@ -25,3 +25,23 @@ pub enum TokenType {
   
 	EOF
 }
+
+#[derive(Debug)]
+pub struct Token { 
+	pub ttype: TokenType,
+	pub start: usize,
+	pub length: u32,
+	pub line: u32
+}
+
+#[derive(Debug)]
+pub struct TokenError {
+	pub message: String,
+	pub line: u32
+}
+
+#[derive(Debug)]
+pub enum TokenResult {
+	TOKEN(Token),
+	ERROR(TokenError)
+}

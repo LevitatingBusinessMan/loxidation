@@ -1,6 +1,7 @@
 pub mod tokens;
 
-use tokens::TokenType;
+use tokens::*;
+use std::char;
 
 pub struct Scanner {
 	start: usize,
@@ -9,32 +10,12 @@ pub struct Scanner {
 	source: String
 }
 
-#[derive(Debug)]
-pub struct Token { 
-	ttype: TokenType,
-	start: usize,
-	length: u32,
-	line: u32
-}
-
-#[derive(Debug)]
-pub struct TokenError {
-	message: String,
-	line: u32
-}
-
-#[derive(Debug)]
-pub enum TokenResult {
-	TOKEN(Token),
-	ERROR(TokenError)
-}
-
 impl Scanner {
 	pub fn new(source: String) -> Scanner {
 		Scanner {
 			start: 0,
 			current: 0,
-			line: 0,
+			line: 1,
 			source
 		}
 	}
@@ -63,6 +44,7 @@ impl Scanner {
 		self.start = self.current;
 
 		macro_rules! token {($type:ident) => {TokenResult::TOKEN(self.token(TokenType::$type))};}
+		macro_rules! error {($msg:tt) => {TokenResult::ERROR(self.error_token($msg.to_owned()))};}
 
 		if self.at_end() {return token!(EOF)};
 
@@ -70,12 +52,12 @@ impl Scanner {
 
 		//Glorious whitespace removal loop
 		loop {
-			if character == '/' && self.peek() == Some('=') {
-				while self.peek() != Some('=') {
-					self.advance();
-					if self.at_end() {
-						return token!(EOF)
-					}
+			if character == '/' && self.peek() == Some('/') {
+				println!("Start comment");
+				if self.consume_till('\n') {
+					break
+				} else {
+					return token!(EOF) 
 				}
 			}
 			if !character.is_whitespace() {break;}
@@ -86,6 +68,35 @@ impl Scanner {
 			}
 			character = self.advance();
 		}
+
+		//Glorious digit loop
+		if character.is_digit(10) {	
+			loop {
+				if self.peek() == None {
+					return token!(EOF);
+				}
+				let next = self.peek().unwrap();
+				if !next.is_digit(10) {
+					return token!(NUMBER);
+				}
+				self.advance();
+			}
+		}
+
+		//Glorious identifier loop
+		if character.is_alphabetic() {
+			loop {
+				if self.peek() == None {
+					return token!(EOF);
+				}
+				let next = self.peek().unwrap();
+				if !next.is_alphabetic() {
+					return token!(IDENTIFIER);
+				}
+				self.advance();
+			}
+		}
+
 		let character = character;
 
 		return match character {
@@ -104,9 +115,26 @@ impl Scanner {
 			'=' => if self.peek() == Some('=') {self.advance(); token!(EQUAL_EQUAL)} else {token!(EQUAL)},
 			'<' => if self.peek() == Some('=') {self.advance(); token!(LESS_EQUAL)} else {token!(LESS)},
 			'>' => if self.peek() == Some('=') {self.advance(); token!(GREATER_EQUAL)} else {token!(GREATER)},
-			_ => TokenResult::ERROR(self.error_token("Unknown token".to_owned()))
+			'"' => if self.consume_till('"') {token!(STRING)} else {error!("Non-terminated string")}
+			_ => error!("Unknown token")
 		};
 
+	}
+
+	fn consume_till(&mut self, c: char) -> bool {
+		while self.peek() != Some(c) || self.peek() == None {
+			if self.peek() == None {
+				return false;
+			}
+			if self.advance() == '\n' {
+				self.line += 1
+			}
+		}
+		self.advance();
+		if self.at_end() {
+			return false
+		}
+		return true;
 	}
 
 	fn at_end(&self) -> bool {
@@ -135,8 +163,8 @@ impl Scanner {
 	}
 
 	fn peek(&mut self) -> Option<char> {
-		if self.source.len() == self.current+1 {return None}
-		Some(self.source.as_bytes()[self.current+1] as char)
+		if self.at_end() {return None}
+		Some(self.source.as_bytes()[self.current] as char)
 	}
 
 }
