@@ -7,8 +7,15 @@ pub type OpCode = u8;
 
 //At first this was an enum with discriminant values
 //But this would make it hard to add or remove an OP without shifting the values
-pub const RETURN: u8 = 0x1;
-pub const CONSTANT: u8 = 0x2;
+//#region
+pub const RETURN: OpCode = 0x1;
+pub const CONSTANT: OpCode = 0x2;
+pub const NEGATE: OpCode = 0x3;
+pub const ADD: OpCode = 0x4;
+pub const SUBTRACT: OpCode = 0x5;
+pub const MULTIPLY: OpCode = 0x6;
+pub const DIVIDE: OpCode = 0x7;
+//#endregion
 
 //Possibly change the offset here to be a reference
 pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
@@ -47,6 +54,11 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 
 	let name = match op {
 		RETURN => "RETURN".to_owned(),
+		NEGATE => "NEGATE".to_owned(),
+		ADD => "ADD".to_owned(),
+		SUBTRACT => "SUBTRACT".to_owned(),
+		MULTIPLY => "MULTIPLY".to_owned(),
+		DIVIDE => "DIVIDE".to_owned(),
 		CONSTANT => {
 			offset+=1;
 			let index = chunk.code[offset];
