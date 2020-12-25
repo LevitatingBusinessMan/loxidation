@@ -2,6 +2,7 @@ pub mod tokens;
 
 use tokens::*;
 use std::char;
+use std::collections::HashMap;
 
 pub struct Scanner {
 	start: usize,
@@ -53,19 +54,37 @@ impl Scanner {
 		//Glorious whitespace removal loop
 		loop {
 			if character == '/' && self.peek() == Some('/') {
-				println!("Start comment");
 				if self.consume_till('\n') {
-					break
+					character = self.advance();
+					self.line += 1;
 				} else {
-					return token!(EOF) 
+					return token!(EOF);
 				}
 			}
-			if !character.is_whitespace() {break;}
+			if character == '/' && self.peek() == Some('*') {
+				self.advance();
+				loop {
+					if self.consume_till('*') {
+						if self.peek() == Some('/') {
+							self.advance();
+							character = self.advance();
+							break;
+						}
+					} else {
+						return token!(EOF);
+					}
+				}
+			}
+
+			//All of this is a bit of a mess I know but it works flawlessly
+			self.start = self.current-1;
+			if !character.is_whitespace() && character != '/' {break;}
 			if character == '\n' {self.line += 1;}
 
 			if self.at_end() {
 				return token!(EOF)
 			}
+
 			character = self.advance();
 		}
 
@@ -86,12 +105,31 @@ impl Scanner {
 		//Glorious identifier loop
 		if character.is_alphabetic() {
 			loop {
-				if self.peek() == None {
-					return token!(EOF);
-				}
-				let next = self.peek().unwrap();
-				if !next.is_alphabetic() {
-					return token!(IDENTIFIER);
+				if self.peek() == None || !self.peek().unwrap().is_alphabetic() {
+
+					//Yes bob I know trie's are faster
+					//But guess what, this isn't C and you aren't my dad
+					let string = &self.source[self.start..self.current];
+
+					return match string {
+						"and" => token!(AND),
+						"class" => token!(CLASS),
+						"else" => token!(ELSE),
+						"false" => token!(FALSE),
+						"for" => token!(FOR),
+						"fun" => token!(FUN),
+						"if" => token!(IF),
+						"nil" => token!(NIL),
+						"or" => token!(OR),
+						"print" => token!(PRINT),
+						"return" => token!(RETURN),
+						"super" => token!(SUPER),
+						"this" => token!(THIS),
+						"true" => token!(TRUE),
+						"var" => token!(VAR),
+						"while" => token!(WHILE),
+						_ => token!(IDENTIFIER)
+					}
 				}
 				self.advance();
 			}
