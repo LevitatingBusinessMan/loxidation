@@ -117,7 +117,7 @@ impl Compiler {
 		//Operator time
 		match op_type {
 			TokenType::PLUS => self.push_byte(ADD),
-			TokenType::MINUS => self.push_byte(NEGATE),
+			TokenType::MINUS => self.push_byte(SUBTRACT),
 			TokenType::ASTERISK => self.push_byte(MULTIPLY),
 			TokenType::SLASH => self.push_byte(DIVIDE),
 			_ => unreachable!()
