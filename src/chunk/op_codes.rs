@@ -3,6 +3,7 @@
 use crate::chunk::Chunk;
 use crate::chunk::value::{Value,ValueMethods};
 
+///Code for an operator or the value of an operand
 pub type OpCode = u8;
 
 //At first this was an enum with discriminant values

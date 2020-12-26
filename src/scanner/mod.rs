@@ -2,13 +2,12 @@ pub mod tokens;
 
 use tokens::*;
 use std::char;
-use std::collections::HashMap;
 
 pub struct Scanner {
 	start: usize,
 	current: usize,
 	line: u32,
-	source: String
+	pub source: String
 }
 
 impl Scanner {
@@ -91,12 +90,13 @@ impl Scanner {
 		//Glorious digit loop
 		if character.is_digit(10) {	
 			loop {
-				if self.peek() == None {
-					return token!(EOF);
-				}
-				let next = self.peek().unwrap();
-				if !next.is_digit(10) {
-					return token!(NUMBER);
+				match self.peek() {
+					Some(next) => {
+						if !next.is_digit(10) {
+							return token!(NUMBER);
+						}
+					},
+					None => return token!(NUMBER)
 				}
 				self.advance();
 			}

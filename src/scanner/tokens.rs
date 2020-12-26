@@ -1,9 +1,10 @@
 #[allow(non_camel_case_types)]
 #[derive(PartialEq)]
 #[derive(Debug)]
+#[derive(Copy, Clone)]
 pub enum TokenType {
 	// Single-character tokens.
-	LEFT_PAREN, RIGHT_PAREN,
+	LEFT_PAREN = 0, RIGHT_PAREN,
 	LEFT_BRACE, RIGHT_BRACE,
 	COMMA, DOT, MINUS, PLUS,
 	SEMICOLON, SLASH, ASTERISK,
@@ -27,6 +28,7 @@ pub enum TokenType {
 }
 
 #[derive(Debug)]
+#[derive(Copy, Clone)]
 pub struct Token { 
 	pub ttype: TokenType,
 	pub start: usize,

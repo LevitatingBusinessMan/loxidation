@@ -4,7 +4,7 @@ use crate::chunk::value::{Value,ValueMethods};
 
 pub const STACK_SIZE: usize = 1024;
 
-pub struct VM {
+struct VM {
 	chunk: Chunk,
 	ip: usize,
 	stack: Vec<Value>

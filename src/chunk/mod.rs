@@ -41,7 +41,7 @@ impl Chunk {
 
 	//Pushes the constant and gives the index
 	//Really unnecesarry but it saves a line
-	pub fn push_constant(&mut self, constant: f64) -> usize {
+	pub fn push_constant(&mut self, constant: Value) -> usize {
 		self.constants.push(constant);
 		self.constants.len() -1
 	}
@@ -65,6 +65,7 @@ impl Chunk {
 
 		return self.code.len() -1
 	}
+
 }
 
 //pub type Chunk = Vec<OpCode>;
