@@ -1,7 +1,6 @@
 //https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
 
 use crate::chunk::Chunk;
-use crate::chunk::value::{ValueMethods};
 
 ///Code for an operator or the value of an operand
 pub type OpCode = u8;
@@ -63,8 +62,8 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		CONSTANT => {
 			offset+=1;
 			let index = chunk.code[offset];
-			let value = chunk.constants[index as usize];
-			format!("{} {:04} ({})", "CONSTANT", index, value.print())
+			let value = &chunk.constants[index as usize];
+			format!("{} {:04} ({})", "CONSTANT", index, value.to_string())
 		},
 		_ => "unknown".to_owned()
 	};

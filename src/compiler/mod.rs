@@ -1,4 +1,4 @@
-use crate::chunk::{Chunk, op_codes::*, value::Value};
+use crate::chunk::{Chunk, op_codes::*, value::{Value,number}};
 use crate::scanner::{Scanner, tokens::{*}};
 
 #[macro_use]
@@ -127,17 +127,9 @@ impl Compiler {
 	}
 
 	fn number(&mut self) {
-
-		//Gotta use this result
-		let value = self.lexeme(self.previous).parse::<Value>();
-		match value {
-			Ok(value) => {
-				self.push_constant(value);
-			},
-			Err(_) => {
-				self.error_at(self.previous, "lexeme doesn't convert to Lox value");
-			}
-		}
+		//I bet it's safe to just assume this will parse to an int, right?
+		let value = Value::from(self.lexeme(self.previous).parse::<number>().unwrap());
+		self.push_constant(value);
 	}
 
 	fn push_constant(&mut self, value: Value) {

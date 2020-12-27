@@ -2,6 +2,7 @@ use crate::scanner::tokens::TokenType;
 use crate::compiler;
 use crate::compiler::Compiler;
 
+#[derive(Debug)]
 pub enum Precedence {
 	None = 0,
 	Assignment,  // =
