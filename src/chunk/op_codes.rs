@@ -1,7 +1,7 @@
 //https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
 
 use crate::chunk::Chunk;
-use crate::chunk::value::{Value,ValueMethods};
+use crate::chunk::value::{ValueMethods};
 
 ///Code for an operator or the value of an operand
 pub type OpCode = u8;
@@ -85,6 +85,8 @@ pub enum OpCode {
 	RETURN = 0x1,
 	CONSTANT
 }
+//Removed because removing an op would shift all ints
+//Along with some other inconveniences
 
 impl std::fmt::Display for OpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

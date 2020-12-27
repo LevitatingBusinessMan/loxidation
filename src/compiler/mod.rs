@@ -16,6 +16,7 @@ struct Compiler {
 }
 
 pub fn compile(source: String) -> Result<Chunk, ()> {
+	//I gotta look into this clone, should be easily avoidable
 	let scanner = Scanner::new(source.clone());
 
 	let placeholder_token = Token {
@@ -91,7 +92,7 @@ impl Compiler {
 	fn unary(&mut self) {
 		let op_type = self.previous.ttype;
 		
-		self.expression();
+		self.parse_precedence(Precedence::Unary);
 
 		match op_type {
 			TokenType::MINUS => self.push_byte(NEGATE),
