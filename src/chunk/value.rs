@@ -8,10 +8,16 @@ Memory is exactly the same, both are a union and a single byte identifier
 #[allow(non_camel_case_types)]
 pub type number = f64;
 
+/*STRING?
+A string in rust is a Vec<u8>, and a Vec<u8> is just a RawVec<u8> with a length.
+So to keep a special struct with it and impl all kinds of methods to manage it is stupid.
+*/
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
 	BOOL(bool),
 	NUMBER(number),
+	STRING(String),
 	NIL
 }
 
@@ -26,6 +32,13 @@ impl From<number> for Value {
 		Value::NUMBER(value)
 	}
 }
+
+impl From<String> for Value {
+	fn from(value: String) -> Value {
+		Value::STRING(value)
+	}
+}
+
 
 impl From<Value> for number {
 	fn from(value: Value) -> number {
@@ -45,6 +58,15 @@ impl From<Value> for bool {
 	}
 }
 
+impl From<Value> for String {
+	fn from(value: Value) -> String {
+		match value {
+			Value::STRING(string) => string,
+			_ => unreachable!()
+		}
+	}
+}
+
 //According to https://doc.rust-lang.org/std/convert/trait.From.html
 //Into types should be auto generated? Sure k then
 
@@ -53,8 +75,26 @@ impl ToString for Value {
 		return match self {
 			Value::NUMBER(number) => number.to_string(),
 			Value::BOOL(bool) => bool.to_string(),
-			Value::NIL => "nil".to_owned(),
+			Value::STRING(string) => string.clone(),
+			Value::NIL => "nil".to_owned()
 		}
+	}
+}
+
+impl Value {
+	pub fn is_truthy(&self) -> bool {
+		return match self {
+			Value::BOOL(bool) => *bool,
+			Value::NIL => false,
+			_ => true
+		}
+	}
+
+	// Not sure if this is useful in any way
+	// Maybe for future types though
+	//For now this just works on PartialEq
+	pub fn equal(&self, second: Value) -> bool {
+		self == &second
 	}
 }
 

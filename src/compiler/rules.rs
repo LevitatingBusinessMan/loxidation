@@ -50,9 +50,13 @@ pub(super) fn get_rule(ttype: TokenType) -> ParseRule {
 		TokenType::LEFT_PAREN => parse_rule!(prefix => grouping, None),
 		TokenType::MINUS => parse_rule!(both => unary,binary,Term),
 		TokenType::PLUS => parse_rule!(infix => binary,Term),
-		TokenType::SLASH => parse_rule!(infix => binary,Factor),
-		TokenType::ASTERISK => parse_rule!(infix => binary,Factor),
+		TokenType::ASTERISK | TokenType::SLASH => parse_rule!(infix => binary,Factor),
 		TokenType::NUMBER => parse_rule!(prefix => number,None),
+		TokenType::STRING => parse_rule!(prefix => string,None),
+		TokenType::NIL | TokenType::FALSE | TokenType::TRUE =>  parse_rule!(prefix => literal,None),
+		TokenType::BANG => parse_rule!(prefix => unary,None),
+		TokenType::EQUAL_EQUAL => parse_rule!(infix => binary, Equality),
+		TokenType::GREATER | TokenType::LESS | TokenType::GREATER_EQUAL | TokenType::LESS_EQUAL => parse_rule!(infix => binary, Comparison),
 		_ => parse_rule!(none)
 	}
 }

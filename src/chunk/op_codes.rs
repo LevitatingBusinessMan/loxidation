@@ -15,6 +15,13 @@ pub const ADD: OpCode = 0x4;
 pub const SUBTRACT: OpCode = 0x5;
 pub const MULTIPLY: OpCode = 0x6;
 pub const DIVIDE: OpCode = 0x7;
+pub const NIL: OpCode = 0x8;
+pub const TRUE: OpCode = 0x9;
+pub const FALSE: OpCode = 0xa;
+pub const NOT: OpCode = 0xb;
+pub const EQUAL: OpCode = 0xc;
+pub const GREATER: OpCode = 0xd;
+pub const LESS: OpCode = 0xe;
 //#endregion
 
 //Possibly change the offset here to be a reference
@@ -52,20 +59,27 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		format!("{:>4}", line.number)
 	};*/	
 
-	let name = match op {
-		RETURN => "RETURN".to_owned(),
-		NEGATE => "NEGATE".to_owned(),
-		ADD => "ADD".to_owned(),
-		SUBTRACT => "SUBTRACT".to_owned(),
-		MULTIPLY => "MULTIPLY".to_owned(),
-		DIVIDE => "DIVIDE".to_owned(),
-		CONSTANT => {
-			offset+=1;
-			let index = chunk.code[offset];
-			let value = &chunk.constants[index as usize];
-			format!("{} {:04} ({})", "CONSTANT", index, value.to_string())
-		},
-		_ => "unknown".to_owned()
+	let name = if op == CONSTANT {
+		offset+=1;
+		let index = chunk.code[offset];
+		let value = &chunk.constants[index as usize];
+		format!("{} {:04} ({})", "CONSTANT", index, value.to_string())
+	} else {
+		match op {
+			RETURN => "RETURN",
+			NEGATE => "NEGATE",
+			ADD => "ADD",
+			SUBTRACT => "SUBTRACT",
+			MULTIPLY => "MULTIPLY",
+			DIVIDE => "DIVIDE",
+			NIL => "NIL",
+			TRUE => "TRUE",
+			NOT => "NOT",
+			EQUAL => "EQUAL",
+			GREATER => "GREATER",
+			LESS => "LESS",
+			_ => "unknown"
+		}.to_owned()
 	};
 
 	let line = format!("{} {:04} {}\n",line_n_str, op_offset, name);

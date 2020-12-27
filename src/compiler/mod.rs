@@ -95,6 +95,7 @@ impl Compiler {
 
 		match op_type {
 			TokenType::MINUS => self.push_byte(NEGATE),
+			TokenType::BANG => self.push_byte(NOT),
 			_ => unreachable!()
 		}
 	}
@@ -120,9 +121,29 @@ impl Compiler {
 			TokenType::MINUS => self.push_byte(SUBTRACT),
 			TokenType::ASTERISK => self.push_byte(MULTIPLY),
 			TokenType::SLASH => self.push_byte(DIVIDE),
+			TokenType::EQUAL_EQUAL => self.push_byte(EQUAL),
+			TokenType::BANG_EQUAL => self.push_bytes(&[EQUAL, NOT]),
+			TokenType::GREATER => self.push_byte(GREATER),
+			TokenType::GREATER_EQUAL => self.push_bytes(&[LESS,NOT]),
+			TokenType::LESS => self.push_byte(LESS),
+			TokenType::LESS_EQUAL => self.push_bytes(&[GREATER, NOT]),
 			_ => unreachable!()
 		}
 		
+	}
+
+	fn literal(&mut self) {
+		match self.previous.ttype {
+			TokenType::NIL => self.push_byte(NIL),
+			TokenType::TRUE => self.push_byte(TRUE),
+			TokenType::FALSE => self.push_byte(FALSE),
+			_ => unreachable!()
+		}
+	}
+
+	fn string(&mut self) {
+		let value = Value::from(self.lexeme(self.previous).to_owned());
+		self.push_constant(value);
 	}
 
 	fn number(&mut self) {
@@ -159,6 +180,7 @@ impl Compiler {
 	}
 
 	fn push_byte(&mut self, op: OpCode) {
+		println!("{} {}", self.previous.line, op);
 		self.chunk.push_op(op, self.previous.line);
 	}
 

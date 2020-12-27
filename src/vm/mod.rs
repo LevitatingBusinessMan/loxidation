@@ -80,7 +80,21 @@ impl VM {
 				SUBTRACT => binary_op!(-),
 				MULTIPLY => binary_op!(*),
 				DIVIDE => binary_op!(/),
-				_ => return self.runtime_error("Unknown opcode")
+				GREATER => binary_op!(>),
+				LESS => binary_op!(<),
+				NIL => push!(Value::NIL),
+				TRUE => push!(Value::BOOL(true)),
+				FALSE => push!(Value::BOOL(false)),
+				NOT => {
+					let new = !pop!().is_truthy();
+					push!(Value::from(new));
+				},
+				EQUAL => {
+					let b = pop!();
+					let a = pop!();
+					push!(Value::BOOL(a.equal(b)));
+				},
+				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}
 		}
 	}
@@ -91,7 +105,15 @@ impl VM {
 		if stack_length < 1 {
 			eprintln!("[ERROR no-line]: {}",msg);
 		} else {
-			let (_, line) = disassemble(&self.chunk, stack_length-1);
+			let  mut i = 0;
+			let offset = stack_length-1;
+			let line = loop {
+				let line = &self.chunk.lines[i];
+				if line.length >= offset {
+					break line.number;
+				}
+				i += 1;
+			};
 			eprintln!("[ERROR {}]: {}",line,msg);
 		}
 		return Result::RUNTIME_ERROR(msg.to_owned());
