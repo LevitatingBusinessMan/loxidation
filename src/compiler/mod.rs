@@ -16,8 +16,7 @@ struct Compiler {
 }
 
 pub fn compile(source: String) -> Result<Chunk, ()> {
-	//I gotta look into this clone, should be easily avoidable
-	let scanner = Scanner::new(source.clone());
+	let scanner = Scanner::new(source);
 
 	let placeholder_token = Token {
 		ttype: TokenType::EOF,
