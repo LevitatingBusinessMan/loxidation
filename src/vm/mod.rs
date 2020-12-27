@@ -11,10 +11,10 @@ struct VM {
 }
 
 #[derive(Debug)]
+#[allow(non_camel_case_types)]
 pub enum Result {
 	OK,
-	COMPILE_ERROR,
-	RUNTIME_ERROR
+	RUNTIME_ERROR(String)
 }
 
 pub fn interpret(chunk: Chunk) -> Result {
@@ -38,7 +38,7 @@ impl VM {
 		macro_rules! push {($value:expr) => {self.stack.push($value)};}
 		macro_rules! binary_op {($op:tt) => {{
 			if !matches!(peek!(0), Value::NUMBER(_)) || !matches!(peek!(1), Value::NUMBER(_)) {
-				self.runtime_error("Binary operands must be a numbers");
+				return self.runtime_error("Binary operands must be a numbers");
 			}
 			let b = number::from(pop!());
 			let a = number::from(pop!());
@@ -73,26 +73,28 @@ impl VM {
 						let new = Value::from(-(number::from(pop!())));
 						push!(new);
 					} else {
-						self.runtime_error("Operand must be a number");
+						return self.runtime_error("Operand must be a number");
 					}
 				},
 				ADD => binary_op!(+),
 				SUBTRACT => binary_op!(-),
 				MULTIPLY => binary_op!(*),
 				DIVIDE => binary_op!(/),
-				_ => break Result::RUNTIME_ERROR
+				_ => return self.runtime_error("Unknown opcode")
 			}
 		}
 	}
 
-	fn runtime_error(&self, msg: impl AsRef<str>) {
+	fn runtime_error(&self, msg: impl AsRef<str>) -> Result {
 		let msg = msg.as_ref();
 		let stack_length = self.chunk.code.len();
 		if stack_length < 1 {
-			return eprintln!("[ERROR no-line]: {}",msg);
+			eprintln!("[ERROR no-line]: {}",msg);
+		} else {
+			let (_, line) = disassemble(&self.chunk, stack_length-1);
+			eprintln!("[ERROR {}]: {}",line,msg);
 		}
-		let (_, line) = disassemble(&self.chunk, stack_length-1);
-		eprintln!("[ERROR {}]: {}",line,msg);
+		return Result::RUNTIME_ERROR(msg.to_owned());
 	}
 
 	pub fn print_stack(&self) {
