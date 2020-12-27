@@ -77,7 +77,7 @@ impl Scanner {
 
 			//All of this is a bit of a mess I know but it works flawlessly
 			self.start = self.current-1;
-			if !character.is_whitespace() && character != '/' {break;}
+			if !character.is_whitespace() && (character != '/' || (self.peek() != Some('*') && self.peek() != Some('/'))){break;}
 			if character == '\n' {self.line += 1;}
 
 			if self.at_end() {
