@@ -142,7 +142,8 @@ impl Compiler {
 	}
 
 	fn string(&mut self) {
-		let value = Value::from(self.lexeme(self.previous).to_owned());
+		let lexeme = self.lexeme(self.previous);
+		let value = Value::from(lexeme[1..lexeme.len() - 1].to_owned());
 		self.push_constant(value);
 	}
 
@@ -180,7 +181,6 @@ impl Compiler {
 	}
 
 	fn push_byte(&mut self, op: OpCode) {
-		println!("{} {}", self.previous.line, op);
 		self.chunk.push_op(op, self.previous.line);
 	}
 

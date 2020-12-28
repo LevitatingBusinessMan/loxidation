@@ -170,9 +170,6 @@ impl Scanner {
 			}
 		}
 		self.advance();
-		if self.at_end() {
-			return false
-		}
 		return true;
 	}
 

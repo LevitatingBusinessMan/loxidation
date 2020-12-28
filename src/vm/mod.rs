@@ -76,12 +76,20 @@ impl VM {
 						return self.runtime_error("Operand must be a number");
 					}
 				},
-				ADD => binary_op!(+),
 				SUBTRACT => binary_op!(-),
 				MULTIPLY => binary_op!(*),
 				DIVIDE => binary_op!(/),
 				GREATER => binary_op!(>),
 				LESS => binary_op!(<),
+				ADD => {
+					if matches!(peek!(0), Value::STRING(_)) && matches!(peek!(1), Value::STRING(_)) {
+						let b = String::from(pop!());
+						let a = String::from(pop!());
+						push!(Value::from(format!("{}{}",a,b)));
+					} else {
+						binary_op!(+);
+					}
+				},
 				NIL => push!(Value::NIL),
 				TRUE => push!(Value::BOOL(true)),
 				FALSE => push!(Value::BOOL(false)),
