@@ -11,6 +11,7 @@ pub fn repl() {
 		io::stdout().flush().unwrap();
 		stdin.read_line(&mut buf).unwrap();
 		let chunk = compile(buf).unwrap();
+		#[cfg(debug_assertions)]
 		println!("{}", chunk.disassemble("REPL"));
         vm::interpret(chunk);
 		buf = String::new();

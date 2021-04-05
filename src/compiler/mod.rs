@@ -46,9 +46,9 @@ impl Compiler {
 		
 		self.advance();
 
-		self.expression();
-
-		self.consume(TokenType::EOF, "missing EOF at end");
+		while self.current.ttype != TokenType::EOF {
+			self.decleration();
+		}
 
 		self.push_byte(RETURN);
 
@@ -63,6 +63,24 @@ impl Compiler {
 	fn expression(&mut self) {
 		//Lowest
 		self.parse_precedence(Precedence::Assignment);
+	}
+
+	fn decleration(&mut self) {
+		self.statement()
+	}
+
+	fn statement(&mut self) {
+		match self.current.ttype {
+			TokenType::PRINT => self.print_statement(),
+			_ => unreachable!()
+		}
+	}
+
+	fn print_statement(&mut self) {
+		self.advance();
+		self.expression();
+		self.consume(TokenType::SEMICOLON, "expected ';' after expression");
+		self.push_byte(PRINT);
 	}
 
 	fn parse_precedence(&mut self, prec: impl Into<u32>) {

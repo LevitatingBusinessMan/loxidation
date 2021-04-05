@@ -38,7 +38,7 @@ impl VM {
 		macro_rules! push {($value:expr) => {self.stack.push($value)};}
 		macro_rules! binary_op {($op:tt) => {{
 			if !matches!(peek!(0), Value::NUMBER(_)) || !matches!(peek!(1), Value::NUMBER(_)) {
-				return self.runtime_error("Binary operands must be a numbers");
+				return self.runtime_error("Binary operands must be both numbers or both strings");
 			}
 			let b = number::from(pop!());
 			let a = number::from(pop!());
@@ -63,7 +63,7 @@ impl VM {
 			let instruction = read_byte!();
 			match instruction {
 				RETURN => {
-					println!("{}\n", pop!().to_string());
+					//println!("{}\n", pop!());
 					break Result::OK;
 				},
 				CONSTANT => push!(read_constant!().clone()),
@@ -102,6 +102,9 @@ impl VM {
 					let a = pop!();
 					push!(Value::BOOL(a.equal(b)));
 				},
+				PRINT => {
+					println!("{}",pop!());
+				}
 				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}
 		}

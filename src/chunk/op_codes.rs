@@ -22,6 +22,7 @@ pub const NOT: OpCode = 0xb;
 pub const EQUAL: OpCode = 0xc;
 pub const GREATER: OpCode = 0xd;
 pub const LESS: OpCode = 0xe;
+pub const PRINT: OpCode = 0xf;
 //#endregion
 
 //Possibly change the offset here to be a reference
@@ -78,6 +79,7 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 			EQUAL => "EQUAL",
 			GREATER => "GREATER",
 			LESS => "LESS",
+			PRINT => "PRINT",
 			_ => "unknown"
 		}.to_owned()
 	};

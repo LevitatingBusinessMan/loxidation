@@ -68,16 +68,15 @@ impl From<Value> for String {
 }
 
 //According to https://doc.rust-lang.org/std/convert/trait.From.html
-//Into types should be auto generated? Sure k then
-
-impl ToString for Value {
-	fn to_string(&self) -> String {
-		return match self {
+//Should imply ToString, which implies From which implies Into (I think?)
+impl std::fmt::Display for Value {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+		write!(f, "{}", match self {
 			Value::NUMBER(number) => number.to_string(),
 			Value::BOOL(bool) => bool.to_string(),
 			Value::STRING(string) => string.clone(),
 			Value::NIL => "nil".to_owned()
-		}
+		})
 	}
 }
 
