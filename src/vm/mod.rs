@@ -112,11 +112,12 @@ impl VM {
 					pop!();
 				},
 				GLOBAL => {
-					if let Value::STRING(name) = read_constant!().clone() {
+					let constant = read_constant!().clone();
+					if let Value::STRING(name) = constant {
 						//set in global table
 						pop!();
 					} else {
-						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", read_constant!().clone()))
+						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", constant))
 					}
 
 				},
