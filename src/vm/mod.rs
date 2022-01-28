@@ -2,6 +2,7 @@ use crate::chunk::Chunk;
 use crate::chunk::op_codes::*;
 use crate::chunk::value::{Value, number};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 pub const STACK_SIZE: usize = 1024;
 
@@ -114,7 +115,7 @@ impl VM {
 				GLOBAL => {
 					let identifier_constant = read_constant!().clone();
 					if let Value::STRING(identifier) = identifier_constant {
-						self.globals.insert(identifier, pop!());
+						self.globals.insert(identifier.to_string(), pop!());
 					} else {
 						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
 					}
@@ -122,8 +123,13 @@ impl VM {
 				GETGLOBAL => {
 					let identifier_constant = read_constant!().clone();
 					if let Value::STRING(identifier) = identifier_constant {
-						if let Some(value) = self.globals.get(&identifier) {
-							push!(value.clone()) // ye this is where shit gets tough
+						if let Some(value) = self.globals.get(&identifier.to_string()) {
+							push!(
+								match value {
+									Value::STRING(string) => Value::STRING(Rc::clone(&string)),
+									_ => value.clone()
+								}
+							)
 						} else {
 							return self.runtime_error(format!("Global variable {:?} doesn't exist", identifier))
 						}

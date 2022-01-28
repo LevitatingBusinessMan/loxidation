@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 /*
 The book uses a union here, with an enum to track the type.
 In rust Enum variants can have their own values, which in practice is like bundling a union with an enum.
@@ -17,7 +19,7 @@ So to keep a special struct with it and impl all kinds of methods to manage it i
 pub enum Value {
 	BOOL(bool),
 	NUMBER(number),
-	STRING(String),
+	STRING(Rc<String>),
 	NIL
 }
 
@@ -35,7 +37,7 @@ impl From<number> for Value {
 
 impl From<String> for Value {
 	fn from(value: String) -> Value {
-		Value::STRING(value)
+		Value::STRING(Rc::new(value))
 	}
 }
 
@@ -61,7 +63,7 @@ impl From<Value> for bool {
 impl From<Value> for String {
 	fn from(value: Value) -> String {
 		match value {
-			Value::STRING(string) => string,
+			Value::STRING(string) => string.to_string(),
 			_ => unreachable!()
 		}
 	}
@@ -74,7 +76,7 @@ impl std::fmt::Display for Value {
 		write!(f, "{}", match self {
 			Value::NUMBER(number) => number.to_string(),
 			Value::BOOL(bool) => bool.to_string(),
-			Value::STRING(string) => string.clone(),
+			Value::STRING(string) => string.to_string(),
 			Value::NIL => "nil".to_owned()
 		})
 	}
