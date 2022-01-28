@@ -112,14 +112,24 @@ impl VM {
 					pop!();
 				},
 				GLOBAL => {
-					let constant = read_constant!().clone();
-					if let Value::STRING(name) = constant {
-						//set in global table
-						pop!();
+					let identifier_constant = read_constant!().clone();
+					if let Value::STRING(identifier) = identifier_constant {
+						self.globals.insert(identifier, pop!());
 					} else {
-						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", constant))
+						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
 					}
-
+				},
+				GETGLOBAL => {
+					let identifier_constant = read_constant!().clone();
+					if let Value::STRING(identifier) = identifier_constant {
+						if let Some(value) = self.globals.get(&identifier) {
+							push!(value.clone()) // ye this is where shit gets tough
+						} else {
+							return self.runtime_error(format!("Global variable {:?} doesn't exist", identifier))
+						}
+					} else {
+						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
+					}
 				},
 				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}

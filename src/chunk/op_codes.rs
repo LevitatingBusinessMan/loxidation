@@ -25,6 +25,7 @@ pub const LESS: OpCode = 0xe;
 pub const PRINT: OpCode = 0xf;
 pub const POP: OpCode = 0x10;
 pub const GLOBAL: OpCode = 0x11;
+pub const GETGLOBAL: OpCode = 0x12;
 //#endregion
 
 //Possibly change the offset here to be a reference
@@ -75,6 +76,12 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 			let value = &chunk.constants[index as usize];
 			format!("{} {:04} ({})", "GLOBAL", index, value.to_string())
 		},
+		GETGLOBAL => {
+			offset+=1;
+			let index = chunk.code[offset];
+			let value = &chunk.constants[index as usize];
+			format!("{} {:04} ({})", "GETGLOBAL", index, value.to_string())
+		}
 		_ => {
 			match op {
 				RETURN => "RETURN",

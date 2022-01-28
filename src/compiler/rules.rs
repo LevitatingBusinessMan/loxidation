@@ -57,6 +57,7 @@ pub(super) fn get_rule(ttype: TokenType) -> ParseRule {
 		TokenType::BANG => parse_rule!(prefix => unary,None),
 		TokenType::EQUAL_EQUAL => parse_rule!(infix => binary, Equality),
 		TokenType::GREATER | TokenType::LESS | TokenType::GREATER_EQUAL | TokenType::LESS_EQUAL => parse_rule!(infix => binary, Comparison),
+		TokenType::IDENTIFIER => parse_rule!(prefix => variable, None),
 		_ => parse_rule!(none)
 	}
 }

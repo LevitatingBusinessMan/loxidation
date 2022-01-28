@@ -95,9 +95,12 @@ impl Compiler {
 
 	fn parse_variable(&mut self, error_msg: &str) -> usize {
 		self.consume(TokenType::IDENTIFIER, error_msg);
-		
-		//Save the identifier as a string value in the constants list
-		self.chunk.push_constant(Value::from(self.lexeme(self.previous).to_string()))
+		self.identifier_constant(self.previous)
+	}
+
+	// Save the identifier as a string in the constants
+	fn identifier_constant(&mut self, identifier: Token) -> usize {
+		self.chunk.push_constant(Value::from(self.lexeme(identifier).to_string()))
 	}
 
 	fn define_global(&mut self, global_index: usize) {
@@ -206,6 +209,15 @@ impl Compiler {
 		let lexeme = self.lexeme(self.previous);
 		let value = Value::from(lexeme[1..lexeme.len() - 1].to_owned());
 		self.push_constant(value);
+	}
+
+	fn variable(&mut self) {
+		self.named_variable(self.previous)
+	}
+
+	fn named_variable(&mut self, identifier: Token) {
+		let identifier_constant = self.identifier_constant(identifier);
+		self.push_bytes(&[GETGLOBAL, identifier_constant as u8]);
 	}
 
 	fn number(&mut self) {
