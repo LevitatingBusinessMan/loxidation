@@ -1,13 +1,15 @@
 use crate::chunk::Chunk;
 use crate::chunk::op_codes::*;
 use crate::chunk::value::{Value, number};
+use std::collections::HashMap;
 
 pub const STACK_SIZE: usize = 1024;
 
 struct VM {
 	chunk: Chunk,
 	ip: usize,
-	stack: Vec<Value>
+	stack: Vec<Value>,
+	globals: HashMap<String, Value>
 }
 
 #[derive(Debug)]
@@ -21,7 +23,8 @@ pub fn interpret(chunk: Chunk) -> Result {
 	let mut vm = VM{
 		chunk,
 		ip: 0,
-		stack: Vec::with_capacity(STACK_SIZE)
+		stack: Vec::with_capacity(STACK_SIZE),
+		globals: HashMap::new()
 	};
 	vm.run()
 }
@@ -104,7 +107,19 @@ impl VM {
 				},
 				PRINT => {
 					println!("{}",pop!());
-				}
+				},
+				POP => {
+					pop!();
+				},
+				GLOBAL => {
+					if let Value::STRING(name) = read_constant!().clone() {
+						//set in global table
+						pop!();
+					} else {
+						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", read_constant!().clone()))
+					}
+
+				},
 				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}
 		}

@@ -48,6 +48,9 @@ impl Compiler {
 
 		while self.current.ttype != TokenType::EOF {
 			self.decleration();
+			if self.panic {
+				self.synchronize();
+			}
 		}
 
 		self.push_byte(RETURN);
@@ -66,14 +69,54 @@ impl Compiler {
 	}
 
 	fn decleration(&mut self) {
-		self.statement()
+		match self.current.ttype {
+			TokenType::VAR => self.var_decleration(),
+			_ => self.statement()
+		}
+	}
+
+	fn var_decleration(&mut self) {
+		//Advance over the var token
+		self.advance();
+		
+		let global_index = self.parse_variable("expected variable name");
+		
+		if self.current.ttype == TokenType::EQUAL {
+			self.advance();
+			self.expression();
+		} else {
+			self.push_byte(NIL);
+		}
+
+		self.consume(TokenType::SEMICOLON, "expected ';' after variable decleration");
+
+		self.define_global(global_index);
+	}
+
+	fn parse_variable(&mut self, error_msg: &str) -> usize {
+		self.consume(TokenType::IDENTIFIER, error_msg);
+		
+		//Save the identifier as a string value in the constants list
+		self.chunk.push_constant(Value::from(self.lexeme(self.previous).to_string()))
+	}
+
+	fn define_global(&mut self, global_index: usize) {
+		self.push_byte(GLOBAL);
+		self.push_byte(global_index as u8);
 	}
 
 	fn statement(&mut self) {
 		match self.current.ttype {
 			TokenType::PRINT => self.print_statement(),
-			_ => unreachable!()
+			_ => self.expression_statement()
 		}
+	}
+
+	fn expression_statement(&mut self) {
+		self.advance();
+		self.expression();
+		self.consume(TokenType::SEMICOLON, "expected ';' after expression");
+		self.push_byte(POP);
 	}
 
 	fn print_statement(&mut self) {
@@ -235,5 +278,24 @@ impl Compiler {
 		println!("{}",msg);
 		self.success = false;
 		self.panic = true;
+	}
+
+	fn synchronize(&mut self) {
+		self.panic = false;
+		while self.current.ttype != TokenType::EOF {
+			if self.previous.ttype == TokenType::SEMICOLON {return}
+			match self.current.ttype {
+				TokenType::CLASS 	|
+				TokenType::FUN 		|
+				TokenType::VAR 		|
+				TokenType::FOR 		|
+				TokenType::IF 		|
+				TokenType::WHILE 	|
+				TokenType::PRINT 	|
+				TokenType::RETURN => return,
+				_ => {}
+			}
+			self.advance();
+		}
 	}
 }

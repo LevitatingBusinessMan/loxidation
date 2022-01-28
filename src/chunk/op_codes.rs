@@ -23,6 +23,8 @@ pub const EQUAL: OpCode = 0xc;
 pub const GREATER: OpCode = 0xd;
 pub const LESS: OpCode = 0xe;
 pub const PRINT: OpCode = 0xf;
+pub const POP: OpCode = 0x10;
+pub const GLOBAL: OpCode = 0x11;
 //#endregion
 
 //Possibly change the offset here to be a reference
@@ -60,28 +62,38 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		format!("{:>4}", line.number)
 	};*/	
 
-	let name = if op == CONSTANT {
-		offset+=1;
-		let index = chunk.code[offset];
-		let value = &chunk.constants[index as usize];
-		format!("{} {:04} ({})", "CONSTANT", index, value.to_string())
-	} else {
-		match op {
-			RETURN => "RETURN",
-			NEGATE => "NEGATE",
-			ADD => "ADD",
-			SUBTRACT => "SUBTRACT",
-			MULTIPLY => "MULTIPLY",
-			DIVIDE => "DIVIDE",
-			NIL => "NIL",
-			TRUE => "TRUE",
-			NOT => "NOT",
-			EQUAL => "EQUAL",
-			GREATER => "GREATER",
-			LESS => "LESS",
-			PRINT => "PRINT",
-			_ => "unknown"
-		}.to_owned()
+	let name = match op {
+		CONSTANT => {
+			offset+=1;
+			let index = chunk.code[offset];
+			let value = &chunk.constants[index as usize];
+			format!("{} {:04} ({})", "CONSTANT", index, value.to_string())
+		},
+		GLOBAL => {
+			offset+=1;
+			let index = chunk.code[offset];
+			let value = &chunk.constants[index as usize];
+			format!("{} {:04} ({})", "GLOBAL", index, value.to_string())
+		},
+		_ => {
+			match op {
+				RETURN => "RETURN",
+				NEGATE => "NEGATE",
+				ADD => "ADD",
+				SUBTRACT => "SUBTRACT",
+				MULTIPLY => "MULTIPLY",
+				DIVIDE => "DIVIDE",
+				NIL => "NIL",
+				TRUE => "TRUE",
+				NOT => "NOT",
+				EQUAL => "EQUAL",
+				GREATER => "GREATER",
+				LESS => "LESS",
+				PRINT => "PRINT",
+				POP => "POP",
+				_ => "unknown"
+			}.to_owned()
+		}
 	};
 
 	let line = format!("{} {:04} {}\n",line_n_str, op_offset, name);

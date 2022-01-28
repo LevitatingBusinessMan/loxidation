@@ -26,7 +26,7 @@ impl Into<u32> for Precedence {
 
 pub(super) struct ParseRule {
 	pub prefix: Option<for<'r> fn(&'r mut compiler::Compiler)>,
-	pub infix: Option<for<'r> fn(&'r mut compiler::Compiler) >,
+	pub infix: Option<for<'r> fn(&'r mut compiler::Compiler)>,
 	pub precedence: Precedence
 }
 
