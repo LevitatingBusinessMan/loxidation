@@ -12,6 +12,7 @@ struct Compiler {
 	scanner: Scanner,
 	success: bool,
 	panic: bool,
+	can_assign: bool,
 	chunk: Chunk
 }
 
@@ -31,7 +32,8 @@ pub fn compile(source: String) -> Result<Chunk, ()> {
 		previous: placeholder_token,
 		chunk: Chunk::new(),
 		panic: false,
-		success: true
+		success: true,
+		can_assign: false
 	};
 
 
@@ -104,7 +106,7 @@ impl Compiler {
 	}
 
 	fn define_global(&mut self, global_index: usize) {
-		self.push_byte(GLOBAL);
+		self.push_byte(DEFGLOBAL);
 		self.push_byte(global_index as u8);
 	}
 
@@ -116,7 +118,6 @@ impl Compiler {
 	}
 
 	fn expression_statement(&mut self) {
-		self.advance();
 		self.expression();
 		self.consume(TokenType::SEMICOLON, "expected ';' after expression");
 		self.push_byte(POP);
@@ -135,6 +136,8 @@ impl Compiler {
 		let rule = get_rule(self.previous.ttype);
 		
 		if let Some(prefix) = rule.prefix {
+				let can_assign = prec <= Precedence::Assignment as u32;
+				self.can_assign = can_assign;
 				prefix(self);
 
 				while prec <= get_rule(self.current.ttype).precedence as u32 {
@@ -145,6 +148,10 @@ impl Compiler {
 					} else {
 						unreachable!();
 					}
+				}
+
+				if can_assign && self.current.ttype == TokenType::EQUAL {
+					self.error_at(self.previous, "invalid assignment target")
 				}
 
 		} else {
@@ -217,7 +224,14 @@ impl Compiler {
 
 	fn named_variable(&mut self, identifier: Token) {
 		let identifier_constant = self.identifier_constant(identifier);
-		self.push_bytes(&[GETGLOBAL, identifier_constant as u8]);
+
+		if self.can_assign && self.current.ttype == TokenType::EQUAL {
+			self.advance();
+			self.expression();
+			self.push_bytes(&[SETGLOBAL, identifier_constant as u8]);
+		} else {
+			self.push_bytes(&[GETGLOBAL, identifier_constant as u8]);
+		}
 	}
 
 	fn number(&mut self) {

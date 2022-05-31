@@ -111,7 +111,7 @@ impl VM {
 				POP => {
 					pop!();
 				},
-				GLOBAL => {
+				DEFGLOBAL => {
 					let identifier_constant = read_constant!().clone();
 					if let Value::STRING(identifier) = identifier_constant {
 						self.globals.insert(identifier, pop!());
@@ -126,6 +126,18 @@ impl VM {
 							push!(value.clone()) // ye this is where shit gets tough
 						} else {
 							return self.runtime_error(format!("Global variable {:?} doesn't exist", identifier))
+						}
+					} else {
+						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
+					}
+				},
+				SETGLOBAL => {
+					let identifier_constant = read_constant!().clone();
+					if let Value::STRING(identifier) = identifier_constant {
+						if self.globals.contains_key(&identifier, ) {
+							self.globals.insert(identifier, peek!(0).clone());
+						} else {
+							return self.runtime_error(format!("Undefined variable: {:?}", identifier))
 						}
 					} else {
 						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
