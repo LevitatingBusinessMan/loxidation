@@ -102,7 +102,8 @@ impl Compiler {
 
 	// Save the identifier as a string in the constants
 	fn identifier_constant(&mut self, identifier: Token) -> usize {
-		self.chunk.push_constant(Value::from(self.lexeme(identifier).to_string()))
+		let lexeme = self.lexeme(identifier).to_string();
+		self.chunk.constants.iter().position(|val| val.to_string() == lexeme).unwrap_or_else(|| self.chunk.push_constant(Value::from(self.lexeme(identifier).to_string())))
 	}
 
 	fn define_global(&mut self, global_index: usize) {
