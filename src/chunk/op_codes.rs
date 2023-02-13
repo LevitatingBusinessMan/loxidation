@@ -6,7 +6,8 @@ use crate::chunk::Chunk;
 pub type OpCode = u8;
 
 //At first this was an enum with discriminant values
-//But this would make it hard to add or remove an OP without shifting the values
+//The benefit was that the name could be derived from the variant
+//but it was hard to convert the type to a u8.
 //#region
 pub const RETURN: OpCode = 0x1;
 pub const CONSTANT: OpCode = 0x2;
@@ -127,7 +128,7 @@ pub enum OpCode {
 	CONSTANT
 }
 //Removed because removing an op would shift all ints
-//Along with some other inconveniences
+//Along with some other inconveniences (like difficulty converting to u8)
 
 impl std::fmt::Display for OpCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
