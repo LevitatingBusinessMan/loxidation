@@ -1,4 +1,4 @@
-use crate::{chunk::{Chunk, op_codes::*, value::{Value,number}}, scanner};
+use crate::{chunk::{Chunk, op_codes::*, value::{Value,number}}};
 use crate::scanner::{Scanner, tokens::{*}};
 
 #[macro_use]
@@ -6,6 +6,18 @@ mod rules;
 
 use rules::*;
 
+#[derive(PartialEq, Debug)]
+struct Local {
+	identifier: Token,
+	depth: u32,
+
+	/// If the local has been initialized
+	/// The book doesn't use this but instead
+	/// sets the depth to -1
+	initialized: bool,
+}
+
+/// Holds the state of the compiler
 struct Compiler {
 	previous: Token,
 	current: Token,
@@ -15,11 +27,11 @@ struct Compiler {
 	can_assign: bool,
 	chunk: Chunk,
 	
-	// Locals in scope
-	//locals: Vec<Local>,
+	/// Locals in scope
+	locals: Vec<Local>,
 
-	// Scope depth
-	scope: usize,
+	/// Scope depth
+	scope: u32,
 }
 
 impl Compiler {
@@ -39,6 +51,7 @@ impl Compiler {
 			panic: false,
 			success: true,
 			can_assign: false,
+			locals: vec![],
 			scope: 0,
 		}
 	}
@@ -102,15 +115,50 @@ impl Compiler {
 
 		self.consume(TokenType::SEMICOLON, "expected ';' after variable decleration");
 
-		self.define_global(global_index);
+		if global_index.is_some() {
+			self.define_global(global_index.unwrap())
+		} else {
+			// After we have parsed the expression of a local
+			// we can say it's initialized
+			self.locals.last_mut().unwrap().initialized = true;
+		};
 	}
 
-	fn parse_variable(&mut self, error_msg: &str) -> usize {
+	/// In case of a global, consumes the identifier and saves it as a string in the constants
+	/// then returns the index.
+	fn parse_variable(&mut self, error_msg: &str) -> Option<usize> {
 		self.consume(TokenType::IDENTIFIER, error_msg);
-		self.identifier_constant(self.previous)
+		if (self.scope > 0) {
+			self.declare_variable();
+			return None;
+		}
+		Some(self.identifier_constant(self.previous))
 	}
 
-	// Save the identifier as a string in the constants
+	/// Save a local
+	fn declare_variable(&mut self) {		
+		// Detect a double variable decleration
+		let mut error: Option<Token> = None;
+		for local in &self.locals {
+			if local.identifier == self.previous {
+				error = Some(self.previous);
+				break;
+			}
+		}
+		if let Some(error) = error {
+			self.error_at(error, "A variable with that identifier has already been declared in this scope");
+		}
+
+		let local = Local {
+			identifier: self.previous,
+			depth: self.scope,
+			initialized: false,
+		};
+		self.locals.push(local);
+	}
+
+	/// Saves or retrieves an identifier by the constants.
+	/// Returns the index.
 	fn identifier_constant(&mut self, identifier: Token) -> usize {
 		let lexeme = self.lexeme(identifier).to_string();
 		self.chunk.constants.iter().position(|val| val.to_string() == lexeme).unwrap_or_else(|| self.chunk.push_constant(Value::from(self.lexeme(identifier).to_string())))
@@ -124,7 +172,36 @@ impl Compiler {
 	fn statement(&mut self) {
 		match self.current.ttype {
 			TokenType::PRINT => self.print_statement(),
+			TokenType::LEFT_BRACE => {
+				self.begin_scope();
+				self.block_statement();
+				self.end_scope();
+			},
 			_ => self.expression_statement()
+		}
+	}
+
+	fn block_statement(&mut self) {
+		self.advance();
+		while self.current.ttype != TokenType::RIGHT_BRACE && self.current.ttype != TokenType::EOF {
+			self.decleration();
+		}
+		self.consume(TokenType::RIGHT_BRACE, "expected '}' after block");
+	}
+
+	fn begin_scope(&mut self) {
+		self.scope += 1;
+	}
+
+	fn end_scope(&mut self) {
+		self.scope -= 1;
+		let len_before = self.locals.len();
+		let scope = self.scope;
+		self.locals.retain(|local| local.depth <= scope);
+		
+		// Create a pop for each removed
+		for _ in 0..(len_before - self.locals.len()) {
+			self.push_byte(POP);
 		}
 	}
 
@@ -234,15 +311,50 @@ impl Compiler {
 	}
 
 	fn named_variable(&mut self, identifier: Token) {
-		let identifier_constant = self.identifier_constant(identifier);
+		
+		let mut identifier_constant;
+		let mut set_op;
+		let mut get_op;
+
+		if let Some(index) = self.resolve_local(identifier) {
+			set_op = SETLOCAL;
+			get_op = GETLOCAL;
+			identifier_constant = index;
+		} else {
+			set_op = SETGLOBAL;
+			get_op = GETGLOBAL;
+			identifier_constant = self.identifier_constant(identifier);
+		}
 
 		if self.can_assign && self.current.ttype == TokenType::EQUAL {
 			self.advance();
 			self.expression();
-			self.push_bytes(&[SETGLOBAL, identifier_constant as u8]);
+			self.push_bytes(&[set_op, identifier_constant as u8]);
 		} else {
-			self.push_bytes(&[GETGLOBAL, identifier_constant as u8]);
+			self.push_bytes(&[get_op, identifier_constant as u8]);
 		}
+	}
+
+	/// Find a local by token, return the index
+	fn resolve_local(&mut self, identifier: Token) -> Option<usize> {
+		let mut index: Option<usize> = None;
+		let mut error = false;
+		for (i, local) in self.locals.iter().rev().enumerate() {
+			if (self.lexeme(local.identifier) == self.lexeme(identifier)) {
+				if !local.initialized {
+					error = true;
+				}
+
+				// The iterator is reversed to check most recent locals first,
+				// but this means we have to convert the index as well
+				index = Some(self.locals.len()-i-1);
+				break;
+			}
+		}
+		if (error) {
+			self.error_at(identifier, "Can't read local variable in it's own initializer.");
+		}
+		return index;
 	}
 
 	fn number(&mut self) {

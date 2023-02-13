@@ -9,6 +9,9 @@ struct VM {
 	chunk: Chunk,
 	ip: usize,
 	stack: Vec<Value>,
+
+	// This ideally wouldn't be an hashmap but an array.
+	// The compiler would generate the indexes for it like with locals.
 	globals: HashMap<String, Value>
 }
 
@@ -135,6 +138,7 @@ impl VM {
 					let identifier_constant = read_constant!().clone();
 					if let Value::STRING(identifier) = identifier_constant {
 						if self.globals.contains_key(&identifier, ) {
+							// Don't pop, as an assignment is also an expression
 							self.globals.insert(identifier, peek!(0).clone());
 						} else {
 							return self.runtime_error(format!("Undefined variable: {:?}", identifier))
@@ -143,6 +147,15 @@ impl VM {
 						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
 					}
 				},
+				GETLOCAL => {
+					let index = read_byte!();
+					push!(self.stack[index as usize].clone());
+				},
+				SETLOCAL => {
+					let index = read_byte!();
+					// Don't pop, as an assignment is also an expression
+					self.stack[index as usize] = peek!(0).clone();
+				}
 				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}
 		}

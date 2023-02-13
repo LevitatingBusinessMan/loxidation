@@ -66,6 +66,12 @@ pub const GETGLOBAL: OpCode = 0x12;
 
 /// Update a global
 pub const SETGLOBAL: OpCode = 0x13;
+
+/// Push a local variable onto the stack
+pub const GETLOCAL: OpCode = 0x14;
+
+/// Update a local variable
+pub const SETLOCAL: OpCode = 0x15;
 //#endregion
 
 //Possibly change the offset here to be a reference
@@ -127,7 +133,17 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 			let index = chunk.code[offset];
 			let value = &chunk.constants[index as usize];
 			format!("{} {:04} ({})", "SETGLOBAL", index, value.to_string())
-		}
+		},
+		GETLOCAL => {
+			offset+=1;
+			let index = chunk.code[offset];
+			format!("{} {:04}", "GETLOCAL", index)
+		},
+		SETLOCAL => {
+			offset+=1;
+			let index = chunk.code[offset];
+			format!("{} {:04}", "SETLOCAL", index)
+		},
 		_ => {
 			match op {
 				RETURN => "RETURN",
