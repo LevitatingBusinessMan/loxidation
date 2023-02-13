@@ -1,4 +1,4 @@
-use crate::chunk::{Chunk, op_codes::*, value::{Value,number}};
+use crate::{chunk::{Chunk, op_codes::*, value::{Value,number}}, scanner};
 use crate::scanner::{Scanner, tokens::{*}};
 
 #[macro_use]
@@ -13,29 +13,39 @@ struct Compiler {
 	success: bool,
 	panic: bool,
 	can_assign: bool,
-	chunk: Chunk
+	chunk: Chunk,
+	
+	// Locals in scope
+	//locals: Vec<Local>,
+
+	// Scope depth
+	scope: usize,
+}
+
+impl Compiler {
+	pub fn new(scanner: Scanner) -> Compiler {
+		let placeholder_token = Token {
+			ttype: TokenType::EOF,
+			start: 0,
+			length: 0,
+			line: 0
+		};
+	
+		Compiler {
+			scanner,
+			current: placeholder_token,
+			previous: placeholder_token,
+			chunk: Chunk::new(),
+			panic: false,
+			success: true,
+			can_assign: false,
+			scope: 0,
+		}
+	}
 }
 
 pub fn compile(source: String) -> Result<Chunk, ()> {
-	let scanner = Scanner::new(source);
-
-	let placeholder_token = Token {
-		ttype: TokenType::EOF,
-		start: 0,
-		length: 0,
-		line: 0
-	};
-
-	let mut compiler = Compiler {
-		scanner,
-		current: placeholder_token,
-		previous: placeholder_token,
-		chunk: Chunk::new(),
-		panic: false,
-		success: true,
-		can_assign: false
-	};
-
+	let mut compiler = Compiler::new(Scanner::new(source));
 
 	return match compiler.start() {
 		Ok(()) => Ok(compiler.chunk),
