@@ -2,5 +2,3 @@ All allocated values should probably be reference counted.
 Like seen in the rc branch with the string value.
 
 There should be methods for this added to value.
-
-GLOBAL to DEFGLOBAL
