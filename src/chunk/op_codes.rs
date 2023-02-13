@@ -9,24 +9,62 @@ pub type OpCode = u8;
 //The benefit was that the name could be derived from the variant
 //but it was hard to convert the type to a u8.
 //#region
+
+/// Currently stops the process
 pub const RETURN: OpCode = 0x1;
+
+/// Push a constant onto the stack
 pub const CONSTANT: OpCode = 0x2;
+
+/// Negate value on stack
 pub const NEGATE: OpCode = 0x3;
+
+/// + operation
 pub const ADD: OpCode = 0x4;
+
+/// - operation
 pub const SUBTRACT: OpCode = 0x5;
+
+/// * operation
 pub const MULTIPLY: OpCode = 0x6;
+
+/// \ operation
 pub const DIVIDE: OpCode = 0x7;
+
+/// Push a nil
 pub const NIL: OpCode = 0x8;
+
+/// Push a true
 pub const TRUE: OpCode = 0x9;
+
+/// Push a false
 pub const FALSE: OpCode = 0xa;
+
+/// ! operation
 pub const NOT: OpCode = 0xb;
+
+/// == operation
 pub const EQUAL: OpCode = 0xc;
+
+/// \> operation
 pub const GREATER: OpCode = 0xd;
+
+/// \< operation
 pub const LESS: OpCode = 0xe;
+
+/// Print value
 pub const PRINT: OpCode = 0xf;
+
+/// Pop value off stack
 pub const POP: OpCode = 0x10;
+
+/// Define a global
 pub const DEFGLOBAL: OpCode = 0x11;
+
+/// Push a global onto the stack
 pub const GETGLOBAL: OpCode = 0x12;
+
+/// Update a global
 pub const SETGLOBAL: OpCode = 0x13;
 //#endregion
 
