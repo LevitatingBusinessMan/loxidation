@@ -29,13 +29,13 @@ impl Chunk {
 		//header
 		let mut str = format!("== {} ==\n", name);
 
-		/* Uncomment this to show constant table
-		let mut i = 0;
-		while i < self.constants.len() {
-			let constant = &self.constants[i];
-			str.push_str(&format!("constant {}: {}\n", i, constant.to_string()));
-			i += 1;
-		} */
+		// Uncomment this to show constant table
+		// let mut i = 0;
+		// while i < self.constants.len() {
+		// 	let constant = &self.constants[i];
+		// 	str.push_str(&format!("constant {}: {}\n", i, constant.to_string()));
+		// 	i += 1;
+		// }
 
 		let mut offset = 0;
 		while offset < self.code.len() {

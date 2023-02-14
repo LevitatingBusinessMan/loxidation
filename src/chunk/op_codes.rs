@@ -119,20 +119,17 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		DEFGLOBAL => {
 			offset+=1;
 			let index = chunk.code[offset];
-			let value = &chunk.constants[index as usize];
-			format!("{} {:04} ({})", "DEFGLOBAL", index, value.to_string())
+			format!("{} {:04}", "DEFGLOBAL", index)
 		},
 		GETGLOBAL => {
 			offset+=1;
 			let index = chunk.code[offset];
-			let value = &chunk.constants[index as usize];
-			format!("{} {:04} ({})", "GETGLOBAL", index, value.to_string())
+			format!("{} {:04}", "GETGLOBAL", index)
 		},
 		SETGLOBAL => {
 			offset+=1;
 			let index = chunk.code[offset];
-			let value = &chunk.constants[index as usize];
-			format!("{} {:04} ({})", "SETGLOBAL", index, value.to_string())
+			format!("{} {:04}", "SETGLOBAL", index)
 		},
 		GETLOCAL => {
 			offset+=1;
