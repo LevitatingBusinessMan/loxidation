@@ -1,7 +1,6 @@
 use crate::chunk::Chunk;
 use crate::chunk::op_codes::*;
 use crate::chunk::value::{Value, number};
-use std::collections::HashMap;
 
 pub const STACK_SIZE: usize = 1024;
 
@@ -12,7 +11,7 @@ struct VM {
 
 	// This ideally wouldn't be an hashmap but an array.
 	// The compiler would generate the indexes for it like with locals.
-	globals: HashMap<String, Value>
+	globals: Vec<Value>,
 }
 
 #[derive(Debug)]
@@ -27,7 +26,7 @@ pub fn interpret(chunk: Chunk) -> Result {
 		chunk,
 		ip: 0,
 		stack: Vec::with_capacity(STACK_SIZE),
-		globals: HashMap::new()
+		globals: vec![],
 	};
 	vm.run()
 }
@@ -115,36 +114,23 @@ impl VM {
 					pop!();
 				},
 				DEFGLOBAL => {
-					let identifier_constant = read_constant!().clone();
-					if let Value::STRING(identifier) = identifier_constant {
-						self.globals.insert(identifier, pop!());
+					let index = read_byte!() as usize;
+					if self.globals.len() <= index {
+						self.globals.push(pop!());
 					} else {
-						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
+						self.globals[index] = pop!();
 					}
 				},
 				GETGLOBAL => {
-					let identifier_constant = read_constant!().clone();
-					if let Value::STRING(identifier) = identifier_constant {
-						if let Some(value) = self.globals.get(&identifier) {
-							push!(value.clone()) // ye this is where shit gets tough
-						} else {
-							return self.runtime_error(format!("Global variable {:?} doesn't exist", identifier))
-						}
-					} else {
-						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
-					}
+					let index = read_byte!() as usize;
+					push!(self.globals[index].clone());
 				},
 				SETGLOBAL => {
-					let identifier_constant = read_constant!().clone();
-					if let Value::STRING(identifier) = identifier_constant {
-						if self.globals.contains_key(&identifier, ) {
-							// Don't pop, as an assignment is also an expression
-							self.globals.insert(identifier, peek!(0).clone());
-						} else {
-							return self.runtime_error(format!("Undefined variable: {:?}", identifier))
-						}
+					let index = read_byte!() as usize;
+					if self.globals.len() <= index {
+						self.globals.push(pop!());
 					} else {
-						return self.runtime_error(format!("Identifier for global variable isn't of type string: {:?}", identifier_constant))
+						self.globals[index] = pop!();
 					}
 				},
 				GETLOCAL => {

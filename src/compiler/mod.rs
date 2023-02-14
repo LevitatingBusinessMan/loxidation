@@ -23,6 +23,11 @@ struct Local {
 	constant: bool,
 }
 
+struct Global {
+	identifier: Token,
+	constant: bool,
+}
+
 /// Holds the state of the compiler
 struct Compiler {
 	previous: Token,
@@ -35,6 +40,7 @@ struct Compiler {
 	
 	/// Locals in scope
 	locals: Vec<Local>,
+	globals: Vec<Global>,
 
 	/// Scope depth
 	scope: u32,
@@ -58,6 +64,7 @@ impl Compiler {
 			success: true,
 			can_assign: false,
 			locals: vec![],
+			globals: vec![],
 			scope: 0,
 		}
 	}
@@ -138,11 +145,11 @@ impl Compiler {
 	/// This will handle globals, locals functions, classes? and parameters
 	fn parse_variable(&mut self, errormsg: &str, constant: bool) -> Option<usize> {
 		self.consume(TokenType::IDENTIFIER, errormsg);
-		if (self.scope > 0) {
+		if self.scope > 0 {
 			self.declare_variable(constant);
 			return None;
 		}
-		Some(self.identifier_constant(self.previous))
+		Some(self.set_global(self.previous, constant))
 	}
 
 	/// Save a local
@@ -168,11 +175,63 @@ impl Compiler {
 		self.locals.push(local);
 	}
 
-	/// Saves or retrieves an identifier from the constants.
-	/// Returns the index.
-	fn identifier_constant(&mut self, identifier: Token) -> usize {
+	/// Saves a global and returns the index
+	fn set_global(&mut self, identifier: Token, constant: bool) -> usize {
 		let lexeme = self.lexeme(identifier).to_string();
-		self.chunk.constants.iter().position(|val| val.to_string() == lexeme).unwrap_or_else(|| self.chunk.push_constant(Value::from(self.lexeme(identifier).to_string())))
+		self.globals.iter().position(|global| self.lexeme(global.identifier) == lexeme).unwrap_or_else(|| {
+			self.globals.push(Global {
+				identifier,
+				constant,
+			});
+			self.globals.len()-1
+		})
+	}
+
+	fn get_global(&mut self, identifier: Token, complain_const: bool) -> Option<usize> {
+		let lexeme = self.lexeme(identifier).to_string();
+		let mut index: Option<usize> = None;
+		let mut error: Option<&str> = None;
+		for (i, global) in self.globals.iter().enumerate() {
+			if self.lexeme(global.identifier) == lexeme {
+				if global.constant && complain_const {
+					error = Some("Can't redefine constant");
+				}
+				index = Some(i);
+			}
+		}
+		if let Some(error) = error {
+			self.error_at(identifier, error);
+		}
+		return index;
+	}
+
+	/// Find a local by token, return the index
+	fn resolve_local(&mut self, identifier: Token, complain_const: bool) -> Option<usize> {
+		let mut index: Option<usize> = None;
+		let mut error: Option<&str> = None;
+		for (i, local) in self.locals.iter().rev().enumerate() {
+			if self.lexeme(local.identifier) == self.lexeme(identifier) {
+
+				// This means we are still inside this locals initializer
+				if !local.initialized {
+					error = Some("Can't read local variable in it's own initializer.");
+				}
+
+				// This local is a constant and should not be redefined
+				if local.constant && complain_const {
+					error = Some("Can't redefine constant");
+				}
+
+				// The iterator is reversed to check most recent locals first,
+				// but this means we have to convert the index as well
+				index = Some(self.locals.len()-i-1);
+				break;
+			}
+		}
+		if let Some(error) = error {
+			self.error_at(identifier, error);
+		}
+		return index;
 	}
 
 	fn define_global(&mut self, global_index: usize) {
@@ -323,60 +382,35 @@ impl Compiler {
 
 	fn named_variable(&mut self, identifier: Token) {
 		
-		let mut identifier_constant;
-		let mut set_op;
-		let mut get_op;
+		// I feel like these should be mutable but whatever
+		let variable_index;
+		let set_op;
+		let get_op;
 
-		if let Some(index) = self.resolve_local(identifier, true) {
+		let assignment = self.can_assign && self.current.ttype == TokenType::EQUAL;
+		
+		if let Some(index) = self.resolve_local(identifier, assignment) {
 			set_op = SETLOCAL;
 			get_op = GETLOCAL;
-			identifier_constant = index;
-		} else {
+			variable_index = index;
+		} else if let Some(index) = self.get_global(identifier, assignment) {
 			set_op = SETGLOBAL;
 			get_op = GETGLOBAL;
-			identifier_constant = self.identifier_constant(identifier);
+			variable_index = index;
+		} else {
+			self.error_at(identifier, "Cannot find variable");
+			set_op = SETLOCAL;
+			get_op = GETLOCAL;
+			variable_index = 0;
 		}
 
 		if self.can_assign && self.current.ttype == TokenType::EQUAL {
-
-			// Check if we're not assigning to a constant
-			
-
 			self.advance();
 			self.expression();
-			self.push_bytes(&[set_op, identifier_constant as u8]);
+			self.push_bytes(&[set_op, variable_index as u8]);
 		} else {
-			self.push_bytes(&[get_op, identifier_constant as u8]);
+			self.push_bytes(&[get_op, variable_index as u8]);
 		}
-	}
-
-	/// Find a local by token, return the index
-	fn resolve_local(&mut self, identifier: Token, complain_const: bool) -> Option<usize> {
-		let mut index: Option<usize> = None;
-		let mut error: Option<&str> = None;
-		for (i, local) in self.locals.iter().rev().enumerate() {
-			if (self.lexeme(local.identifier) == self.lexeme(identifier)) {
-
-				// This means we are still inside this locals initializer
-				if !local.initialized {
-					error = Some("Can't read local variable in it's own initializer.");
-				}
-
-				// This local is a constant and should not be redefined
-				if local.constant && complain_const {
-					error = Some("Can't redefine constant");
-				}
-
-				// The iterator is reversed to check most recent locals first,
-				// but this means we have to convert the index as well
-				index = Some(self.locals.len()-i-1);
-				break;
-			}
-		}
-		if let Some(error) = error {
-			self.error_at(identifier, error);
-		}
-		return index;
 	}
 
 	fn number(&mut self) {

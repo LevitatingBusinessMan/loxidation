@@ -2,3 +2,5 @@ All allocated values should probably be reference counted.
 Like seen in the rc branch with the string value.
 
 Automated tests
+
+Fix scanner with comments as last
