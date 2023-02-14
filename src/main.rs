@@ -1,4 +1,3 @@
-mod chunk;
 mod vm;
 mod repl;
 mod scanner;

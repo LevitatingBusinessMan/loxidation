@@ -1,8 +1,6 @@
-pub mod op_codes;
-pub mod value;
-
-use self::value::Value;
-use self::op_codes::OpCode;
+use crate::vm::value::Value;
+use crate::vm::op_codes;
+use crate::vm::op_codes::OpCode;
 
 //Note, the current implementation in rust makes a vector double capacity when full
 pub struct Chunk {

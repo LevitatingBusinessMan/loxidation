@@ -1,6 +1,9 @@
-use crate::chunk::Chunk;
-use crate::chunk::op_codes::*;
-use crate::chunk::value::{Value, number};
+pub mod chunk;
+pub mod op_codes;
+pub mod value;
+use self::chunk::Chunk;
+use self::op_codes::*;
+use self::value::{Value, number};
 
 pub const STACK_SIZE: usize = 1024;
 

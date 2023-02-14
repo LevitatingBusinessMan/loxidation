@@ -1,6 +1,6 @@
 //https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
 
-use crate::chunk::Chunk;
+use crate::vm::chunk::Chunk;
 
 ///Code for an operator or the value of an operand
 pub type OpCode = u8;
@@ -75,6 +75,7 @@ pub const SETLOCAL: OpCode = 0x15;
 //#endregion
 
 //Possibly change the offset here to be a reference
+/// Disassemble an instruction in a chunk
 pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 	let op_offset = offset;
 	let mut offset = offset;

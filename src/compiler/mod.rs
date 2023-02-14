@@ -1,5 +1,8 @@
-use crate::{chunk::{Chunk, op_codes::*, value::{Value,number}}};
+use crate::vm::chunk::Chunk;
+use crate::vm::value::Value;
+use crate::vm::op_codes::*;
 use crate::scanner::{Scanner, tokens::{*}};
+use crate::vm::value::number;
 
 #[macro_use]
 mod rules;
