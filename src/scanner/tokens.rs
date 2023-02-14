@@ -22,7 +22,7 @@ pub enum TokenType {
 	AND, CLASS, ELSE, FALSE,
 	FOR, FUN, IF, NIL, OR,
 	PRINT, RETURN, SUPER, THIS,
-	TRUE, VAR, WHILE,
+	TRUE, VAR, CONST, WHILE,
   
 	EOF
 }

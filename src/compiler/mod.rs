@@ -8,13 +8,19 @@ use rules::*;
 
 #[derive(PartialEq, Debug)]
 struct Local {
+	/// Identifier token where the local was initialized
 	identifier: Token,
+
+	/// The depth the local was declared at
 	depth: u32,
 
 	/// If the local has been initialized
 	/// The book doesn't use this but instead
 	/// sets the depth to -1
 	initialized: bool,
+
+	/// If the local is a constant
+	constant: bool,
 }
 
 /// Holds the state of the compiler
@@ -95,16 +101,19 @@ impl Compiler {
 
 	fn decleration(&mut self) {
 		match self.current.ttype {
-			TokenType::VAR => self.var_decleration(),
+			TokenType::VAR => self.var_decleration(false),
+			TokenType::CONST => {
+				self.var_decleration(true);
+			}
 			_ => self.statement()
 		}
 	}
 
-	fn var_decleration(&mut self) {
+	fn var_decleration(&mut self, constant: bool) {
 		//Advance over the var token
 		self.advance();
 		
-		let global_index = self.parse_variable("expected variable name");
+		let global_index = self.parse_variable("expected variable name", constant);
 		
 		if self.current.ttype == TokenType::EQUAL {
 			self.advance();
@@ -126,17 +135,18 @@ impl Compiler {
 
 	/// In case of a global, consumes the identifier and saves it as a string in the constants
 	/// then returns the index.
-	fn parse_variable(&mut self, error_msg: &str) -> Option<usize> {
-		self.consume(TokenType::IDENTIFIER, error_msg);
+	/// This will handle globals, locals functions, classes? and parameters
+	fn parse_variable(&mut self, errormsg: &str, constant: bool) -> Option<usize> {
+		self.consume(TokenType::IDENTIFIER, errormsg);
 		if (self.scope > 0) {
-			self.declare_variable();
+			self.declare_variable(constant);
 			return None;
 		}
 		Some(self.identifier_constant(self.previous))
 	}
 
 	/// Save a local
-	fn declare_variable(&mut self) {		
+	fn declare_variable(&mut self, constant: bool) {		
 		// Detect a double variable decleration
 		let mut error: Option<Token> = None;
 		for local in &self.locals {
@@ -153,11 +163,12 @@ impl Compiler {
 			identifier: self.previous,
 			depth: self.scope,
 			initialized: false,
+			constant,
 		};
 		self.locals.push(local);
 	}
 
-	/// Saves or retrieves an identifier by the constants.
+	/// Saves or retrieves an identifier from the constants.
 	/// Returns the index.
 	fn identifier_constant(&mut self, identifier: Token) -> usize {
 		let lexeme = self.lexeme(identifier).to_string();
@@ -316,7 +327,7 @@ impl Compiler {
 		let mut set_op;
 		let mut get_op;
 
-		if let Some(index) = self.resolve_local(identifier) {
+		if let Some(index) = self.resolve_local(identifier, true) {
 			set_op = SETLOCAL;
 			get_op = GETLOCAL;
 			identifier_constant = index;
@@ -327,6 +338,10 @@ impl Compiler {
 		}
 
 		if self.can_assign && self.current.ttype == TokenType::EQUAL {
+
+			// Check if we're not assigning to a constant
+			
+
 			self.advance();
 			self.expression();
 			self.push_bytes(&[set_op, identifier_constant as u8]);
@@ -336,13 +351,20 @@ impl Compiler {
 	}
 
 	/// Find a local by token, return the index
-	fn resolve_local(&mut self, identifier: Token) -> Option<usize> {
+	fn resolve_local(&mut self, identifier: Token, complain_const: bool) -> Option<usize> {
 		let mut index: Option<usize> = None;
-		let mut error = false;
+		let mut error: Option<&str> = None;
 		for (i, local) in self.locals.iter().rev().enumerate() {
 			if (self.lexeme(local.identifier) == self.lexeme(identifier)) {
+
+				// This means we are still inside this locals initializer
 				if !local.initialized {
-					error = true;
+					error = Some("Can't read local variable in it's own initializer.");
+				}
+
+				// This local is a constant and should not be redefined
+				if local.constant && complain_const {
+					error = Some("Can't redefine constant");
 				}
 
 				// The iterator is reversed to check most recent locals first,
@@ -351,8 +373,8 @@ impl Compiler {
 				break;
 			}
 		}
-		if (error) {
-			self.error_at(identifier, "Can't read local variable in it's own initializer.");
+		if let Some(error) = error {
+			self.error_at(identifier, error);
 		}
 		return index;
 	}

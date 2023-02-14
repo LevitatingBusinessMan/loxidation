@@ -128,6 +128,7 @@ impl Scanner {
 						"this" => token!(THIS),
 						"true" => token!(TRUE),
 						"var" => token!(VAR),
+						"const" => token!(CONST),
 						"while" => token!(WHILE),
 						_ => token!(IDENTIFIER)
 					}
