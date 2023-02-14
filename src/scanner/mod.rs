@@ -54,7 +54,7 @@ impl Scanner {
 		//Glorious whitespace removal loop
 		loop {
 			if character == '/' && self.peek() == Some('/') {
-				if self.consume_till('\n') {
+				if self.consume_till('\n') && !self.at_end() {
 					character = self.advance();
 					self.line += 1;
 				} else {
@@ -65,10 +65,12 @@ impl Scanner {
 				self.advance();
 				loop {
 					if self.consume_till('*') {
-						if self.peek() == Some('/') {
+						if self.peek() == Some('/') && !self.at_end() {
 							self.advance();
 							character = self.advance();
 							break;
+						} else {
+							return token!(EOF);
 						}
 					} else {
 						return token!(EOF);
