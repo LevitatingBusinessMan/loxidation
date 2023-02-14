@@ -29,6 +29,8 @@ struct Local {
 struct Global {
 	identifier: Token,
 	constant: bool,
+	/// If the global has been initialized
+	initialized: bool,
 }
 
 /// Holds the state of the compiler
@@ -112,9 +114,7 @@ impl Compiler {
 	fn decleration(&mut self) {
 		match self.current.ttype {
 			TokenType::VAR => self.var_decleration(false),
-			TokenType::CONST => {
-				self.var_decleration(true);
-			}
+			TokenType::CONST => self.var_decleration(true),
 			_ => self.statement()
 		}
 	}
@@ -135,7 +135,10 @@ impl Compiler {
 		self.consume(TokenType::SEMICOLON, "expected ';' after variable decleration");
 
 		if global_index.is_some() {
-			self.define_global(global_index.unwrap())
+			self.define_global(global_index.unwrap());
+			// After we have parsed the expression of this global
+			// we can say it's initialized
+			self.globals.last_mut().unwrap().initialized = true;
 		} else {
 			// After we have parsed the expression of a local
 			// we can say it's initialized
@@ -179,12 +182,14 @@ impl Compiler {
 	}
 
 	/// Saves a global and returns the index
+	/// Can also return an old global with that name
 	fn set_global(&mut self, identifier: Token, constant: bool) -> usize {
 		let lexeme = self.lexeme(identifier).to_string();
 		self.globals.iter().position(|global| self.lexeme(global.identifier) == lexeme).unwrap_or_else(|| {
 			self.globals.push(Global {
 				identifier,
 				constant,
+				initialized: false,
 			});
 			self.globals.len()-1
 		})
@@ -196,8 +201,13 @@ impl Compiler {
 		let mut error: Option<&str> = None;
 		for (i, global) in self.globals.iter().enumerate() {
 			if self.lexeme(global.identifier) == lexeme {
+				// We are currently initializing this variable
+				if !global.initialized {
+					error = Some("can't read global variable in it's own initializer.");
+				}
+
 				if global.constant && complain_const {
-					error = Some("Can't redefine constant");
+					error = Some("can't redefine constant");
 				}
 				index = Some(i);
 			}
@@ -217,12 +227,12 @@ impl Compiler {
 
 				// This means we are still inside this locals initializer
 				if !local.initialized {
-					error = Some("Can't read local variable in it's own initializer.");
+					error = Some("can't read local variable in it's own initializer.");
 				}
 
 				// This local is a constant and should not be redefined
 				if local.constant && complain_const {
-					error = Some("Can't redefine constant");
+					error = Some("can't redefine constant");
 				}
 
 				// The iterator is reversed to check most recent locals first,
@@ -250,8 +260,13 @@ impl Compiler {
 				self.block_statement();
 				self.end_scope();
 			},
+			TokenType::IF => self.if_statement(),
 			_ => self.expression_statement()
 		}
+	}
+
+	fn if_statement(&mut self) {
+		self.consume(TokenType::LEFT_PAREN, "expected '(' after if")
 	}
 
 	fn block_statement(&mut self) {
@@ -401,7 +416,7 @@ impl Compiler {
 			get_op = GETGLOBAL;
 			variable_index = index;
 		} else {
-			self.error_at(identifier, "Cannot find variable");
+			self.error_at(identifier, "cannot find variable");
 			set_op = SETLOCAL;
 			get_op = GETLOCAL;
 			variable_index = 0;
