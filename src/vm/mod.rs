@@ -130,10 +130,11 @@ impl VM {
 				},
 				SETGLOBAL => {
 					let index = read_byte!() as usize;
+					let value = peek!(0).clone();
 					if self.globals.len() <= index {
-						self.globals.push(pop!());
+						self.globals.push(value);
 					} else {
-						self.globals[index] = pop!();
+						self.globals[index] = value;
 					}
 				},
 				GETLOCAL => {
