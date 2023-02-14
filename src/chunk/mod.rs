@@ -1,8 +1,8 @@
 pub mod op_codes;
 pub mod value;
 
-use value::Value;
-use op_codes::OpCode;
+use self::value::Value;
+use self::op_codes::OpCode;
 
 //Note, the current implementation in rust makes a vector double capacity when full
 pub struct Chunk {

@@ -4,7 +4,7 @@ use crate::scanner::{Scanner, tokens::{*}};
 #[macro_use]
 mod rules;
 
-use rules::*;
+use self::rules::*;
 
 #[derive(PartialEq, Debug)]
 struct Local {

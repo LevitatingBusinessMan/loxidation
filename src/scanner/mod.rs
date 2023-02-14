@@ -1,6 +1,6 @@
 pub mod tokens;
 
-use tokens::*;
+use self::tokens::*;
 use std::char;
 
 pub struct Scanner {
