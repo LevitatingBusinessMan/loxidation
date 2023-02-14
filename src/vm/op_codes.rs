@@ -58,20 +58,26 @@ pub const PRINT: OpCode = 0xf;
 /// Pop value off stack
 pub const POP: OpCode = 0x10;
 
-/// Define a global
+/// Define a global, takes global index
 pub const DEFGLOBAL: OpCode = 0x11;
 
-/// Push a global onto the stack
+/// Push a global onto the stack, takes global index
 pub const GETGLOBAL: OpCode = 0x12;
 
-/// Update a global
+/// Update a global, takes global index
 pub const SETGLOBAL: OpCode = 0x13;
 
-/// Push a local variable onto the stack
+/// Push a local variable onto the stack, takes stack index
 pub const GETLOCAL: OpCode = 0x14;
 
-/// Update a local variable
+/// Update a local variable, takes stack index
 pub const SETLOCAL: OpCode = 0x15;
+
+/// Jump if true, takes offset
+pub const JUMPIFTRUE: OpCode = 0x16;
+
+/// Jump if false, takes offset
+pub const JUMPIFFALSE: OpCode = 0x17;
 //#endregion
 
 //Possibly change the offset here to be a reference

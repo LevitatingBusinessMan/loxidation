@@ -3,4 +3,12 @@ Like seen in the rc branch with the string value.
 
 Automated tests
 
-Fix scanner with comments as last
+In Bobs spec, redeclaring a local should result in an error.
+Redeclaring a global shouldn't.
+Currently both don't error, I think I will keep it that way.
+
+This bytecode looks weird but works:
+{
+    var x = 3;
+    x = 2;
+}
