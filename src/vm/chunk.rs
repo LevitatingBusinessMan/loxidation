@@ -3,13 +3,15 @@ use crate::vm::op_codes;
 use crate::vm::op_codes::OpCode;
 
 //Note, the current implementation in rust makes a vector double capacity when full
+/// A Chunk is compiled by the compiler and used by the VM
+/// It holds everything necessary to run the code and produce runtime error messages
 pub struct Chunk {
 	pub code: Vec<OpCode>,
 	pub constants: Vec<Value>,
 	pub lines: Vec<Line>
 }
 
-///The linenumber and the index of the last op of this line
+/// The linenumber and the index of the last op of this line
 pub struct Line {
 	pub number: u32,
 	pub length: usize

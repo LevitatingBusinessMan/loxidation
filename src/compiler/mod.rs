@@ -266,7 +266,49 @@ impl Compiler {
 	}
 
 	fn if_statement(&mut self) {
-		self.consume(TokenType::LEFT_PAREN, "expected '(' after if")
+		self.advance();
+		self.consume(TokenType::LEFT_PAREN, "expected '(' after if");
+		self.expression();
+		self.consume(TokenType::RIGHT_PAREN, "expected ')' after condition");
+		let jump_to_else: usize = self.placeholder_jump(JUMPIFFALSE);
+		self.push_byte(POP);
+		self.statement();
+
+		// Always having a jump even if there's no ELSE
+		// may seem redundant but I think it's necessary
+		// for popping the condition.
+		// Adding a jump funcition that pops would solve that.
+
+		let jump_over_else: usize = self.placeholder_jump(JUMP);
+		self.patch_jump(jump_to_else);
+		if self.current.ttype == TokenType::ELSE {
+			self.advance();
+			self.statement();
+		}
+		self.push_byte(POP);
+		self.patch_jump(jump_over_else);
+	}
+
+	/// Place a jump instruction with 0xffff as the destination offset;
+	/// The index of this instruction is returned.
+	fn placeholder_jump(&mut self, op: OpCode) -> usize {
+		self.push_byte(op);
+		self.push_bytes(&[0xff,0xff]);
+		// 1 because len and 2 because of the arguments
+		return self.chunk.code.len() - 3;
+	}
+
+	/// Takes the location of a jump and
+	/// inserts the offset between here and there
+	/// as the opcode argument.
+	fn patch_jump(&mut self, location: usize) {
+		// -3 considering len and the two arguments
+		let offset: usize = self.chunk.code.len() - location - 3;
+		if offset > std::u16::MAX as usize {
+			self.error_at(self.current, "cannot jump over that much code");
+		}
+		self.chunk.code[location + 1] = ((offset as u16 >> 8) & 0xff) as u8;
+		self.chunk.code[location + 2] = (offset & 0xff) as u8;
 	}
 
 	fn block_statement(&mut self) {
@@ -503,6 +545,7 @@ impl Compiler {
 		self.panic = true;
 	}
 
+	/// Jump to the next statement
 	fn synchronize(&mut self) {
 		self.panic = false;
 		while self.current.ttype != TokenType::EOF {

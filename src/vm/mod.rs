@@ -1,6 +1,7 @@
 pub mod chunk;
 pub mod op_codes;
 pub mod value;
+
 use self::chunk::Chunk;
 use self::op_codes::*;
 use self::value::{Value, number};
@@ -55,6 +56,10 @@ impl VM {
 		macro_rules! read_byte {() => {{
 			self.ip += 1;
 			self.chunk.code[self.ip-1]
+		}};}
+		macro_rules! read_word {() => {{
+			self.ip += 2;
+			((self.chunk.code[self.ip-2] as u16) << 8 | self.chunk.code[self.ip-1] as u16)
 		}};}
 		macro_rules! read_constant {() => {&self.chunk.constants[read_byte!() as usize]};}
 		//#endregion
@@ -139,13 +144,24 @@ impl VM {
 				},
 				GETLOCAL => {
 					let index = read_byte!();
+					// I could handle errors here but the compiler should make them impossible
 					push!(self.stack[index as usize].clone());
 				},
 				SETLOCAL => {
 					let index = read_byte!();
 					// Don't pop, as an assignment is also an expression
 					self.stack[index as usize] = peek!(0).clone();
-				}
+				},
+				JUMPIFFALSE => {
+					let offset = read_word!();
+					if !peek!(0).is_truthy() {
+						self.ip += offset as usize;
+					}
+				},
+				JUMP => {
+					let offset = read_word!();
+					self.ip += offset as usize;
+				},
 				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}
 		}

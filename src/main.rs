@@ -1,3 +1,4 @@
+#![feature(try_trait_v2)]
 mod vm;
 mod repl;
 mod scanner;

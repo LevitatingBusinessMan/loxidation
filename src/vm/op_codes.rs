@@ -73,11 +73,11 @@ pub const GETLOCAL: OpCode = 0x14;
 /// Update a local variable, takes stack index
 pub const SETLOCAL: OpCode = 0x15;
 
-/// Jump if true, takes offset
-pub const JUMPIFTRUE: OpCode = 0x16;
-
-/// Jump if false, takes offset
+/// Jump if false, takes offset (in two bytes)
 pub const JUMPIFFALSE: OpCode = 0x17;
+
+/// Jump, takes offset (in two bytes)
+pub const JUMP: OpCode = 0x18;
 //#endregion
 
 //Possibly change the offset here to be a reference
@@ -148,6 +148,16 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 			let index = chunk.code[offset];
 			format!("{} {:04}", "SETLOCAL", index)
 		},
+		JUMP => {
+			offset+=2;
+			let index = (chunk.code[offset -1] as u16) << 8 | chunk.code[offset] as u16;
+			format!("{} {:04}", "JUMP", index)
+		},
+		JUMPIFFALSE => {
+			offset+=2;
+			let index = (chunk.code[offset -1] as u16) << 8 | chunk.code[offset] as u16;
+			format!("{} {:04}", "JUMPIFFALSE", index)
+		},
 		_ => {
 			match op {
 				RETURN => "RETURN",
@@ -164,6 +174,8 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 				LESS => "LESS",
 				PRINT => "PRINT",
 				POP => "POP",
+				FALSE => "FALSE",
+				TRUE => "TRUE",
 				_ => "unknown"
 			}.to_owned()
 		}
