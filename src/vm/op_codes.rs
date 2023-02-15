@@ -168,15 +168,14 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 				DIVIDE => "DIVIDE",
 				NIL => "NIL",
 				TRUE => "TRUE",
+				FALSE => "FALSE",
 				NOT => "NOT",
 				EQUAL => "EQUAL",
 				GREATER => "GREATER",
 				LESS => "LESS",
 				PRINT => "PRINT",
 				POP => "POP",
-				FALSE => "FALSE",
-				TRUE => "TRUE",
-				_ => "unknown"
+				_ => "unknown",
 			}.to_owned()
 		}
 	};
