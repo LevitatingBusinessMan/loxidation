@@ -1,2 +1,2 @@
-// [line 2] Error: Unterminated string.
+// error: non-terminated string
 "this string has no close quote

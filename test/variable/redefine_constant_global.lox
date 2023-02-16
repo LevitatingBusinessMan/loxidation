@@ -1,4 +1,4 @@
 // This is an extension in loxidation
 const a = 2;
-a = 3; // Error at 'a': Can't redefine constant
+a = 3; // error: can't redefine constant
 print a;
