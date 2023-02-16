@@ -3,6 +3,7 @@ use crate::vm::value::Value;
 use crate::vm::op_codes::*;
 use crate::scanner::{Scanner, tokens::{*}};
 use crate::vm::value::number;
+use std::collections::HashMap;
 
 #[macro_use]
 mod rules;
@@ -49,6 +50,13 @@ struct Compiler {
 
 	/// Scope depth
 	scope: u32,
+
+	/// Stored locations of labels
+	labels: HashMap<String, usize>,
+
+	/// List of unresolved jump instructions
+	/// That have to be pointed to labels
+	gotos: Vec<(String, Token, usize)>,
 }
 
 impl Compiler {
@@ -71,6 +79,8 @@ impl Compiler {
 			locals: vec![],
 			globals: vec![],
 			scope: 0,
+			labels: HashMap::new(),
+			gotos: vec![],
 		}
 	}
 }
@@ -79,7 +89,13 @@ pub fn compile(source: String) -> Result<Chunk, ()> {
 	let mut compiler = Compiler::new(Scanner::new(source));
 
 	return match compiler.start() {
-		Ok(()) => Ok(compiler.chunk),
+		Ok(()) => {
+			// Second pass for filling goto instructions
+			return match compiler.resolve_gotos() {
+				Ok(()) => Ok(compiler.chunk),
+				Err(()) => Err(())
+			}
+		},
 		Err(()) => Err(())
 	}
 }
@@ -106,6 +122,29 @@ impl Compiler {
 
 	}
 
+	/// Fill all the goto instructions
+	fn resolve_gotos(&mut self) -> Result<(), ()> {
+		let mut errors = vec![];
+		let mut patches = vec![];
+		for goto in &self.gotos {
+			if !self.labels.contains_key(&goto.0) {
+				errors.push(goto.1);
+				//self.error_at(goto.1, "cannot find label");
+				continue;
+			}
+			let label = self.labels.get(&goto.0).unwrap();
+			patches.push((*label, goto.2));
+			//self.patch_jump_from(*label, goto.2)
+		}
+		for patch in patches {
+			self.patch_jump_from(patch.0, patch.1);
+		}
+		for error in errors {
+			self.error_at(error, "cannot find label");
+		}
+		return if self.success {Ok(())} else {Err(())}
+	}
+
 	fn expression(&mut self) {
 		//Lowest
 		self.parse_precedence(Precedence::Assignment);
@@ -115,8 +154,22 @@ impl Compiler {
 		match self.current.ttype {
 			TokenType::VAR => self.var_decleration(false),
 			TokenType::CONST => self.var_decleration(true),
+			TokenType::LABEL => self.label(),
 			_ => self.statement()
 		}
+	}
+
+	fn label(&mut self) {
+		self.advance();
+		self.consume(TokenType::IDENTIFIER, "expected identifier after 'label'");
+		let ident = self.lexeme(self.previous);
+		let location = self.chunk.code.len() - 1;
+		if self.labels.contains_key(ident) {
+			self.error_at(self.previous, "duplicate label identifier")
+		} else {
+			self.labels.insert(ident.to_string(), location);
+		}
+		self.consume(TokenType::COLON, "expected ':' after label");
 	}
 
 	fn var_decleration(&mut self, constant: bool) {
@@ -255,6 +308,7 @@ impl Compiler {
 	fn statement(&mut self) {
 		match self.current.ttype {
 			TokenType::PRINT => self.print_statement(),
+			TokenType::GOTO => self.goto(),
 			TokenType::LEFT_BRACE => {
 				self.begin_scope();
 				self.block_statement();
@@ -263,6 +317,19 @@ impl Compiler {
 			TokenType::IF => self.if_statement(),
 			_ => self.expression_statement()
 		}
+	}
+
+	fn goto(&mut self) {
+		self.advance();
+		self.consume(TokenType::IDENTIFIER, "expected a label to go to");
+		self.placeholder_jump(JUMP);
+		self.gotos.push((
+			self.lexeme(self.previous).to_owned(),
+			self.previous,
+			// one accounting for len(), two for the arguments
+			self.chunk.code.len()-3
+		));
+		self.consume(TokenType::SEMICOLON, "expected ';' after goto statement");
 	}
 
 	fn if_statement(&mut self) {
@@ -302,8 +369,12 @@ impl Compiler {
 	/// inserts the offset between here and there
 	/// as the opcode argument.
 	fn patch_jump(&mut self, location: usize) {
-		// -3 considering len and the two arguments
-		let offset: usize = self.chunk.code.len() - location - 3;
+		self.patch_jump_from(self.chunk.code.len() - 1, location)
+	}
+
+	fn patch_jump_from(&mut self, from: usize, location: usize) {
+		// -2 considering the two arguments
+		let offset: usize = from - location - 2;
 		if offset > std::u16::MAX as usize {
 			self.error_at(self.current, "cannot jump over that much code");
 		}

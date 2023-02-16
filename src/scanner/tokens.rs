@@ -26,6 +26,7 @@ pub enum TokenType {
 	FOR, FUN, IF, NIL, OR,
 	PRINT, RETURN, SUPER, THIS,
 	TRUE, VAR, CONST, WHILE,
+	LABEL, GOTO,
   
 	EOF
 }

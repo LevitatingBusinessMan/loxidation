@@ -20,6 +20,7 @@ impl Scanner {
 		}
 	}
 
+	/// Not used
 	#[allow(dead_code)]
 	pub fn scan_all(&mut self) -> Vec<TokenResult> {
 		let mut tokens = Vec::<TokenResult>::new();
@@ -132,6 +133,8 @@ impl Scanner {
 						"var" => token!(VAR),
 						"const" => token!(CONST),
 						"while" => token!(WHILE),
+						"goto" => token!(GOTO),
+						"label" => token!(LABEL),
 						_ => token!(IDENTIFIER)
 					}
 				}
