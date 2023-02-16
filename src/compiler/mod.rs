@@ -373,10 +373,11 @@ impl Compiler {
 
 	fn patch_jump_from(&mut self, from: usize, location: usize) {
 		// -2 considering the two arguments
-		let offset: usize = from - location - 2;
-		if offset > std::u16::MAX as usize {
+		let offset: Result<i16,_> = (from as i64 - location as i64 - 2).try_into();
+		if offset.is_err() {
 			self.error_at(self.current, "cannot jump over that much code");
 		}
+		let offset = offset.unwrap();
 		self.chunk.code[location + 1] = ((offset as u16 >> 8) & 0xff) as u8;
 		self.chunk.code[location + 2] = (offset & 0xff) as u8;
 	}

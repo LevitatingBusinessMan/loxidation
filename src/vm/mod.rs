@@ -153,14 +153,14 @@ impl VM {
 					self.stack[index as usize] = peek!(0).clone();
 				},
 				JUMPIFFALSE => {
-					let offset = read_word!();
+					let offset = read_word!() as i16;
 					if !peek!(0).is_truthy() {
-						self.ip += offset as usize;
+						self.ip = (self.ip as i64 +  offset as i64) as usize;
 					}
 				},
 				JUMP => {
-					let offset = read_word!();
-					self.ip += offset as usize;
+					let offset = read_word!() as i16;
+					self.ip = (self.ip as i64 +  offset as i64) as usize;
 				},
 				_ => return self.runtime_error(format!("Unknown opcode: 0x{}", std::char::from_digit(instruction as u32, 16).unwrap()))
 			}

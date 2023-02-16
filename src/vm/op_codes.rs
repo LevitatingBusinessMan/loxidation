@@ -149,12 +149,12 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		},
 		JUMP => {
 			offset+=2;
-			let index = (chunk.code[offset -1] as u16) << 8 | chunk.code[offset] as u16;
+			let index = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
 			format!("{} {:04}", "JUMP", index)
 		},
 		JUMPIFFALSE => {
 			offset+=2;
-			let index = (chunk.code[offset -1] as u16) << 8 | chunk.code[offset] as u16;
+			let index = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
 			format!("{} {:04}", "JUMPIFFALSE", index)
 		},
 		_ => {
