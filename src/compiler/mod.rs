@@ -270,7 +270,7 @@ impl Compiler {
 		self.consume(TokenType::LEFT_PAREN, "expected '(' after if");
 		self.expression();
 		self.consume(TokenType::RIGHT_PAREN, "expected ')' after condition");
-		let jump_to_else: usize = self.placeholder_jump(JUMPIFFALSE);
+		let jump_to_else = self.placeholder_jump(JUMPIFFALSE);
 		self.push_byte(POP);
 		self.statement();
 
@@ -279,7 +279,7 @@ impl Compiler {
 		// for popping the condition.
 		// Adding a jump funcition that pops would solve that.
 
-		let jump_over_else: usize = self.placeholder_jump(JUMP);
+		let jump_over_else = self.placeholder_jump(JUMP);
 		self.patch_jump(jump_to_else);
 		if self.current.ttype == TokenType::ELSE {
 			self.advance();
@@ -393,13 +393,13 @@ impl Compiler {
 		// First operand is compiled
 		// Question mark is consumed
 
-		let jump_to_false: usize = self.placeholder_jump(JUMPIFFALSE);
+		let jump_to_false = self.placeholder_jump(JUMPIFFALSE);
 
 		self.push_byte(POP);
 
 		self.parse_precedence(Precedence::Ternary);
 
-		let jump_over_false: usize = self.placeholder_jump(JUMP);
+		let jump_over_false = self.placeholder_jump(JUMP);
 
 		self.consume(TokenType::COLON, "expected ':' in ternary conditional");
 		
@@ -410,6 +410,26 @@ impl Compiler {
 		self.parse_precedence(Precedence::Ternary);
 
 		self.patch_jump(jump_over_false);
+	}
+
+	fn and(&mut self) {
+		// First operand is compiled
+		// operator is consumed
+		let jump_to_false = self.placeholder_jump(JUMPIFFALSE);
+		self.push_byte(POP);
+		self.parse_precedence(Precedence::And);
+		self.patch_jump(jump_to_false);
+	}
+
+	fn or(&mut self) {
+		// First operand is compiled
+		// operator is consumed
+		let jump_to_false = self.placeholder_jump(JUMPIFFALSE);
+		let jump_over_false = self.placeholder_jump(JUMP);
+		self.patch_jump(jump_over_false);
+		self.push_byte(POP);
+		self.parse_precedence(Precedence::Or);
+		self.patch_jump(jump_to_false);
 	}
 
 	fn grouping(&mut self) {

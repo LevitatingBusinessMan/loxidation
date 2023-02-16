@@ -45,7 +45,7 @@ impl Scanner {
 		self.start = self.current;
 
 		macro_rules! token {($type:ident) => {TokenResult::TOKEN(self.token(TokenType::$type))};}
-		macro_rules! error {($msg:tt) => {TokenResult::ERROR(self.error_token($msg.to_owned()))};}
+		macro_rules! error {($msg:expr) => {TokenResult::ERROR(self.error_token($msg.to_owned()))};}
 
 		if self.at_end() {return token!(EOF)};
 
@@ -155,12 +155,14 @@ impl Scanner {
 			'*' => token!(ASTERISK),
 			'?' => token!(QUESTION),
 			':' => token!(COLON),
+			'|' => if self.peek() == Some('|') {self.advance(); token!(OR)} else {token!(PIPE)},
+			'&' => if self.peek() == Some('&') {self.advance(); token!(AND)} else {token!(AMPERSAND)},
 			'!' => if self.peek() == Some('=') {self.advance(); token!(BANG_EQUAL)} else {token!(BANG)},
 			'=' => if self.peek() == Some('=') {self.advance(); token!(EQUAL_EQUAL)} else {token!(EQUAL)},
 			'<' => if self.peek() == Some('=') {self.advance(); token!(LESS_EQUAL)} else {token!(LESS)},
 			'>' => if self.peek() == Some('=') {self.advance(); token!(GREATER_EQUAL)} else {token!(GREATER)},
 			'"' => if self.consume_till('"') {token!(STRING)} else {error!("Non-terminated string")},
-			_ => error!("Unknown token")
+			_ => error!(format!("Unknown token '{}'", character)),
 		};
 
 	}

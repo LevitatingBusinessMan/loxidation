@@ -80,7 +80,6 @@ pub const JUMPIFFALSE: OpCode = 0x17;
 pub const JUMP: OpCode = 0x18;
 //#endregion
 
-//Possibly change the offset here to be a reference
 /// Disassemble an instruction in a chunk
 pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 	let op_offset = offset;
