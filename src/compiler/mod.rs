@@ -397,7 +397,7 @@ impl Compiler {
 
 		self.push_byte(POP);
 
-		self.expression();
+		self.parse_precedence(Precedence::Ternary);
 
 		let jump_over_false: usize = self.placeholder_jump(JUMP);
 
@@ -407,7 +407,7 @@ impl Compiler {
 
 		self.push_byte(POP);
 
-		self.expression();
+		self.parse_precedence(Precedence::Ternary);
 
 		self.patch_jump(jump_over_false);
 	}
