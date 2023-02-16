@@ -52,7 +52,7 @@ impl Scanner {
 
 		let mut character = self.advance();
 
-		//Glorious whitespace removal loop
+		// Glorious whitespace removal loop
 		loop {
 			if character == '/' && self.peek() == Some('/') {
 				if self.consume_till('\n') {
@@ -96,7 +96,7 @@ impl Scanner {
 			character = self.advance();
 		}
 
-		//Glorious digit loop
+		// Glorious digit loop
 		if character.is_digit(10) || 
 			// floats starting with a dot
 			character == '.' && self.peek().unwrap_or(' ').is_digit(10)
@@ -118,11 +118,10 @@ impl Scanner {
 			}
 		}
 
-		//Glorious identifier loop
-		if character.is_alphabetic() {
+		// Glorious identifier loop
+		if character.is_alphabetic() || character == '_' {
 			loop {
-				if self.peek() == None || !self.peek().unwrap().is_alphabetic() {
-
+				if self.peek() == None || !self.peek().unwrap().is_alphabetic() && self.peek().unwrap() != '_' {
 					//Yes bob I know trie's are faster
 					//But guess what, this isn't C and you aren't my dad
 					let string = &self.source[self.start..self.current];

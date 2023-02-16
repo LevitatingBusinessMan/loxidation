@@ -1,8 +1,6 @@
 All allocated values should probably be reference counted.
 Like seen in the rc branch with the string value.
 
-Automated tests
-
 In Bobs spec, redeclaring a local should result in an error.
 Redeclaring a global shouldn't.
 Currently both don't error, I think I will keep it that way.
@@ -10,3 +8,5 @@ Currently both don't error, I think I will keep it that way.
 Add ' for a char type;
 
 don't create duplicate constants?
+
+look into the equality test
