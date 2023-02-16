@@ -97,12 +97,19 @@ impl Scanner {
 		}
 
 		//Glorious digit loop
-		if character.is_digit(10) {	
+		if character.is_digit(10) || 
+			// floats starting with a dot
+			character == '.' && self.peek().unwrap_or(' ').is_digit(10)
+			{	
 			loop {
+				let mut seen_dot = character == '.';
 				match self.peek() {
 					Some(next) => {
-						if !next.is_digit(10) {
+						if !next.is_digit(10) && !(!seen_dot && next == '.') {
 							return token!(NUMBER);
+						}
+						if !seen_dot && next == '.' {
+							seen_dot = true;
 						}
 					},
 					None => return token!(NUMBER)
