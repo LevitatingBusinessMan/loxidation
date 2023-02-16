@@ -1,0 +1,5 @@
+print true ? 1 : 2; // expect: 1
+print false ? 1 : 2; // expect: 2
+print 10 > 1 ? 1 : 1 + 1; // expect: 1
+print 10 < 1 ? 1 : 1 + 1; // expect: 2
+

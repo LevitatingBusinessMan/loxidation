@@ -1,0 +1,3 @@
+goto skip_print;
+print "hallo";
+label skip_print:
