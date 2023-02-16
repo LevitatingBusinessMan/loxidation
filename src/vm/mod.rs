@@ -47,7 +47,7 @@ impl VM {
 		macro_rules! push {($value:expr) => {self.stack.push($value)};}
 		macro_rules! binary_op {($op:tt) => {{
 			if !matches!(peek!(0), Value::NUMBER(_)) || !matches!(peek!(1), Value::NUMBER(_)) {
-				return self.runtime_error("Binary operands must be both numbers or both strings");
+				return self.runtime_error("Binary operands must both be numbers or both be strings");
 			}
 			let b = number::from(pop!());
 			let a = number::from(pop!());
@@ -171,7 +171,7 @@ impl VM {
 		let msg = msg.as_ref();
 		let stack_length = self.chunk.code.len();
 		if stack_length < 1 {
-			eprintln!("[ERROR no-line]: {}",msg);
+			eprintln!("Error: {}",msg);
 		} else {
 			let  mut i = 0;
 			let offset = stack_length-1;
@@ -182,7 +182,7 @@ impl VM {
 				}
 				i += 1;
 			};
-			eprintln!("[ERROR {}]: {}",line,msg);
+			eprintln!("Error at line {}: {}",line,msg);
 		}
 		return Result::RUNTIME_ERROR(msg.to_owned());
 	}

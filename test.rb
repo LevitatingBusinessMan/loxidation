@@ -3,7 +3,7 @@ require 'open3'
 TEST_DIR  = "./test"
 BINARY = "./target/release/loxidation"
 
-puts "Building cargo"
+puts "Building crate"
 # Build release to suppress debug messages
 system("cargo build --release")
 puts "Done building"
@@ -43,9 +43,9 @@ end
 
 DISABLED_CATEGORIES = ["scanning"]
 
-def compare_output src, output
+def compare_output file, output
     output = "" if !output
-    src = File.read src
+    src = File.read file
     expect = ""
     line_n = 0
     for line in src.lines
@@ -58,6 +58,27 @@ def compare_output src, output
         end
     end
     return expect == output
+end
+
+def compare_errors file, output
+    output = "" if !output
+    src = File.read file
+    expect = ""
+    line_n = 0
+    for line in src.lines
+        line_n += 1
+        if line.include? "//"
+            comment = line.split("//").last.strip
+            if comment.start_with? "error: "
+                expect << comment["error: ".length..] + "\n"
+            end
+        end
+    end
+    new_out = ""
+    for line in output.lines
+        new_out << (line.gsub!(/^Line \d+ at ('\w+'|EOF): /, '') || line)
+    end
+    return expect == new_out
 end
 
 for category in tests
@@ -73,13 +94,13 @@ for category in tests
         test_ = test_[1]
         print "Running test #{name}: "
         stdin, stdout, stderr, wait_thr = Open3.popen3 BINARY,  test_[:path]
-        out = stdout.gets(nil)
         err = stderr.gets(nil)
+        out = stdout.gets(nil)
         stdin.close
         stdout.close
         stderr.close
         #exit_status = wait_thr.value
-        suc = compare_output test_[:path], out
+        suc = compare_output(test_[:path], out) && compare_errors(test_[:path], err);
         test_[:passed] = suc
         puts '✔' if suc
         puts '⨯' if !suc

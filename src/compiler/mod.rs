@@ -641,20 +641,20 @@ impl Compiler {
 	fn error_at(&mut self, token: Token, msg: impl AsRef<str>) {
 		let msg = msg.as_ref();
 		if token.ttype == TokenType::EOF {
-			self.print_error(format!("[ERR {}]: at EOF {}", token.line, msg));
+			self.print_error(format!("Line {} at EOF: {}", token.line, msg));
 		} else {
 			let lexeme = self.lexeme(token).to_owned();
-			self.print_error(format!("[ERR {}]: at '{}' {}", token.line, lexeme, msg));
+			self.print_error(format!("Line {} at '{}': {}", token.line, lexeme, msg));
 		}
 	}
 
 	fn error(&mut self, error: TokenError) {
-		self.print_error(format!("[ERR {}]: {}", error.line, error.message));
+		self.print_error(format!("Line {}: {}", error.line, error.message));
 	}
 
 	fn print_error(&mut self, msg: String) {
 		if self.panic {return;}
-		println!("{}",msg);
+		eprintln!("{}",msg);
 		self.success = false;
 		self.panic = true;
 	}

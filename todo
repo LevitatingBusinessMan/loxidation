@@ -10,3 +10,6 @@ Add ' for a char type;
 don't create duplicate constants?
 
 look into the equality test
+
+make repl keep it's state
+(recompile the whole source with the new line, and then start the vm at it's old ip?)
