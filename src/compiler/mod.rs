@@ -497,10 +497,10 @@ impl Compiler {
 		// operator is consumed
 		let jump_to_false = self.placeholder_jump(JUMPIFFALSE);
 		let jump_over_false = self.placeholder_jump(JUMP);
-		self.patch_jump(jump_over_false);
+		self.patch_jump(jump_to_false);
 		self.push_byte(POP);
 		self.parse_precedence(Precedence::Or);
-		self.patch_jump(jump_to_false);
+		self.patch_jump(jump_over_false);
 	}
 
 	fn grouping(&mut self) {
