@@ -389,22 +389,45 @@ impl Compiler {
 		}
 	}
 
+	fn ternary(&mut self) {
+		// First operand is compiled
+		// Question mark is consumed
+
+		let jump_to_false: usize = self.placeholder_jump(JUMPIFFALSE);
+
+		self.push_byte(POP);
+
+		self.expression();
+
+		let jump_over_false: usize = self.placeholder_jump(JUMP);
+
+		self.consume(TokenType::COLON, "expected ':' in ternary conditional");
+		
+		self.patch_jump(jump_to_false);
+
+		self.push_byte(POP);
+
+		self.expression();
+
+		self.patch_jump(jump_over_false);
+	}
+
 	fn grouping(&mut self) {
 		self.expression();
 		self.consume(TokenType::RIGHT_PAREN, "expected ')' after expression");
 	}
 
 	fn binary(&mut self) {
-		//First operand is compiled
+		// First operand is compiled
 
 		let op_type = self.previous.ttype;
 
 		let rule = get_rule(op_type);
 
-		//Push the other operand
+		// Push the other operand
 		self.parse_precedence(rule.precedence as u32+1);
 
-		//Operator time
+		// Operator time
 		match op_type {
 			TokenType::PLUS => self.push_byte(ADD),
 			TokenType::MINUS => self.push_byte(SUBTRACT),

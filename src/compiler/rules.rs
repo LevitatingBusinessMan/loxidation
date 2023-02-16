@@ -3,9 +3,12 @@ use crate::compiler;
 use crate::compiler::Compiler;
 
 #[derive(Debug)]
+// https://en.cppreference.com/w/cpp/language/operator_precedence
+// https://stackoverflow.com/questions/21060234/ruby-operator-precedence-table
 pub enum Precedence {
 	None = 0,
 	Assignment,  // =
+	Ternary,     // ? :
 	Or,          // or
 	And,         // and
 	Equality,    // == !=
@@ -58,6 +61,7 @@ pub(super) fn get_rule(ttype: TokenType) -> ParseRule {
 		TokenType::EQUAL_EQUAL => parse_rule!(infix => binary, Equality),
 		TokenType::GREATER | TokenType::LESS | TokenType::GREATER_EQUAL | TokenType::LESS_EQUAL => parse_rule!(infix => binary, Comparison),
 		TokenType::IDENTIFIER => parse_rule!(prefix => variable, None),
+        TokenType::QUESTION => parse_rule!(infix => ternary, Ternary),
 		_ => parse_rule!(none)
 	}
 }

@@ -8,6 +8,7 @@ pub enum TokenType {
 	LEFT_BRACE, RIGHT_BRACE,
 	COMMA, DOT, MINUS, PLUS,
 	SEMICOLON, SLASH, ASTERISK,
+	QUESTION, COLON,
   
 	// One or two character tokens.
 	BANG, BANG_EQUAL,

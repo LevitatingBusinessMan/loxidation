@@ -153,11 +153,13 @@ impl Scanner {
 			'+' => token!(PLUS),
 			'/' => token!(SLASH),
 			'*' => token!(ASTERISK),
+			'?' => token!(QUESTION),
+			':' => token!(COLON),
 			'!' => if self.peek() == Some('=') {self.advance(); token!(BANG_EQUAL)} else {token!(BANG)},
 			'=' => if self.peek() == Some('=') {self.advance(); token!(EQUAL_EQUAL)} else {token!(EQUAL)},
 			'<' => if self.peek() == Some('=') {self.advance(); token!(LESS_EQUAL)} else {token!(LESS)},
 			'>' => if self.peek() == Some('=') {self.advance(); token!(GREATER_EQUAL)} else {token!(GREATER)},
-			'"' => if self.consume_till('"') {token!(STRING)} else {error!("Non-terminated string")}
+			'"' => if self.consume_till('"') {token!(STRING)} else {error!("Non-terminated string")},
 			_ => error!("Unknown token")
 		};
 
