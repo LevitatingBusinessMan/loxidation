@@ -87,15 +87,14 @@ impl Compiler {
 
 pub fn compile(source: String) -> Result<Chunk, ()> {
 	let mut compiler = Compiler::new(Scanner::new(source));
+	#[allow(unused_must_use)] {
+		compiler.start();
+	}
 
-	return match compiler.start() {
-		Ok(()) => {
-			// Second pass for filling goto instructions
-			return match compiler.resolve_gotos() {
-				Ok(()) => Ok(compiler.chunk),
-				Err(()) => Err(())
-			}
-		},
+	// Run another pass which resolves gotos
+	// regardless if the previous compilation failed
+	return match compiler.resolve_gotos() {
+		Ok(()) => Ok(compiler.chunk),
 		Err(()) => Err(())
 	}
 }
@@ -672,6 +671,8 @@ impl Compiler {
 				TokenType::IF 		|
 				TokenType::WHILE 	|
 				TokenType::PRINT 	|
+				TokenType::LABEL    |
+				TokenType::GOTO     |
 				TokenType::RETURN => return,
 				_ => {}
 			}
