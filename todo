@@ -8,3 +8,5 @@ Redeclaring a global shouldn't.
 Currently both don't error, I think I will keep it that way.
 
 Add ' for a char type;
+
+don't create duplicate constants?

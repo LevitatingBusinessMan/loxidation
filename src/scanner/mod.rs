@@ -55,12 +55,16 @@ impl Scanner {
 		//Glorious whitespace removal loop
 		loop {
 			if character == '/' && self.peek() == Some('/') {
-				if self.consume_till('\n') && !self.at_end() {
+				if self.consume_till('\n') {
+					if self.peek() == None {
+						return token!(EOF);
+					}
 					character = self.advance();
 					self.line += 1;
 				} else {
 					return token!(EOF);
 				}
+				continue;
 			}
 			if character == '/' && self.peek() == Some('*') {
 				self.advance();
@@ -77,6 +81,7 @@ impl Scanner {
 						return token!(EOF);
 					}
 				}
+				continue;
 			}
 
 			//All of this is a bit of a mess I know but it works flawlessly
@@ -170,6 +175,8 @@ impl Scanner {
 
 	}
 
+	// Returns true if it succesfully found the character
+	// Or false if it reached the end
 	fn consume_till(&mut self, c: char) -> bool {
 		while self.peek() != Some(c) || self.peek() == None {
 			if self.peek() == None {
