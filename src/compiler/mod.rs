@@ -136,7 +136,7 @@ impl Compiler {
 			//self.patch_jump_from(*label, goto.2)
 		}
 		for patch in patches {
-			self.patch_jump_from(patch.0, patch.1);
+			self.patch_jump_to(patch.0, patch.1);
 		}
 		for error in errors {
 			self.error_at(error, "cannot find label");
@@ -162,7 +162,7 @@ impl Compiler {
 		self.advance();
 		self.consume(TokenType::IDENTIFIER, "expected identifier after 'label'");
 		let ident = self.lexeme(self.previous);
-		let location = self.chunk.code.len() - 1;
+		let location = self.chunk.code.len();
 		if self.labels.contains_key(ident) {
 			self.error_at(self.previous, "duplicate label identifier")
 		} else {
@@ -211,7 +211,7 @@ impl Compiler {
 	}
 
 	/// Save a local
-	fn declare_variable(&mut self, constant: bool) {		
+	fn declare_variable(&mut self, constant: bool) {
 		// Detect a double variable decleration
 		let mut error: Option<Token> = None;
 		for local in &self.locals {
@@ -314,9 +314,31 @@ impl Compiler {
 				self.end_scope();
 			},
 			TokenType::IF => self.if_statement(),
+			TokenType::WHILE => self.while_(),
 			_ => self.expression_statement()
 		}
 	}
+
+	fn while_(&mut self) {
+		self.advance();
+		let loop_start = self.chunk.code.len();
+		
+		self.consume(TokenType::LEFT_PAREN, "expected a '(' after while");
+		self.expression();
+		self.consume(TokenType::RIGHT_PAREN, "expected a ')' after condition");
+		
+		let exit_jump = self.placeholder_jump(JUMPIFFALSE);
+		self.push_byte(POP);
+		
+		self.statement();
+		
+		let loop_jump = self.placeholder_jump(JUMP);
+		self.patch_jump_to(loop_start, loop_jump);
+
+		self.patch_jump(exit_jump);
+		self.push_byte(POP);
+	}
+
 
 	fn goto(&mut self) {
 		self.advance();
@@ -368,12 +390,13 @@ impl Compiler {
 	/// inserts the offset between here and there
 	/// as the opcode argument.
 	fn patch_jump(&mut self, location: usize) {
-		self.patch_jump_from(self.chunk.code.len() - 1, location)
+		self.patch_jump_to(self.chunk.code.len(), location)
 	}
 
-	fn patch_jump_from(&mut self, from: usize, location: usize) {
-		// -2 considering the two arguments
-		let offset: Result<i16,_> = (from as i64 - location as i64 - 2).try_into();
+	/// Patch the offset of a jump
+	fn patch_jump_to(&mut self, to: usize, location: usize) {
+		// -3 considering the op itself and the two arguments (I think)
+		let offset: Result<i16,_> = (to as i64 - location as i64 - 3).try_into();
 		if offset.is_err() {
 			self.error_at(self.current, "cannot jump over that much code");
 		}

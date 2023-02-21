@@ -13,3 +13,6 @@ look into the equality test
 
 make repl keep it's state
 (recompile the whole source with the new line, and then start the vm at it's old ip?)
+
+About the precedence of bitwise ops
+https://craftinginterpreters.com/parsing-expressions.html#design-note
