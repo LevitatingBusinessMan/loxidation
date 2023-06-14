@@ -90,6 +90,9 @@ for category in tests
         puts "Skipping #{category_name}"
         next
     end
+    if !ARGV.empty?
+        next if !ARGV.include? category_name
+    end
     puts "Testing #{category_name}"
     for test_ in category_tests
         name = test_[0]
@@ -115,6 +118,9 @@ for category in tests
     category_name = category[0]
     category_tests = category[1]
     next if DISABLED_CATEGORIES.include? category_name
+    if !ARGV.empty?
+        next if !ARGV.include? category_name
+    end
     passed = category_tests.count {|t| t[1][:passed]}
     mark = passed == category_tests.length ? '✔' : '⨯'
     puts "#{category_name}: #{passed}/#{category_tests.length} #{mark}"
