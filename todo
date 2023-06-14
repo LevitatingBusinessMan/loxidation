@@ -1,5 +1,6 @@
 All allocated values should probably be reference counted.
 Like seen in the rc branch with the string value.
+Some could even be in a Cow?
 
 In Bobs spec, redeclaring a local should result in an error.
 Redeclaring a global shouldn't.
@@ -11,6 +12,8 @@ look into the equality test
 
 make repl keep it's state
 (recompile the whole source with the new line, and then start the vm at it's old ip?)
+
+could SETGLOBAL pop?
 
 About the precedence of bitwise ops
 https://craftinginterpreters.com/parsing-expressions.html#design-note

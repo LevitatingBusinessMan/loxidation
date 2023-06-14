@@ -146,6 +146,7 @@ impl Scanner {
 						"while" => token!(WHILE),
 						"goto" => token!(GOTO),
 						"label" => token!(LABEL),
+						"continue" => token!(CONTINUE),
 						_ => token!(IDENTIFIER)
 					}
 				}

@@ -4,6 +4,7 @@ use crate::vm::op_codes::*;
 use crate::scanner::{Scanner, tokens::{*}};
 use crate::vm::value::number;
 use std::collections::HashMap;
+use std::ops::Index;
 
 #[macro_use]
 mod rules;
@@ -57,6 +58,9 @@ struct Compiler {
 	/// List of unresolved jump instructions
 	/// That have to be pointed to labels
 	gotos: Vec<(String, Token, usize)>,
+
+	/// These are return pointers for the continue keyword
+	continues: Vec<usize>,
 }
 
 impl Compiler {
@@ -80,6 +84,7 @@ impl Compiler {
 			globals: vec![],
 			scope: 0,
 			labels: HashMap::new(),
+			continues: vec![],
 			gotos: vec![],
 		}
 	}
@@ -316,8 +321,21 @@ impl Compiler {
 			TokenType::IF => self.if_statement(),
 			TokenType::WHILE => self.while_statement(),
 			TokenType::FOR => self.for_statement(),
+			TokenType::CONTINUE => self.continue_statement(),
 			_ => self.expression_statement()
 		}
+	}
+
+	fn continue_statement(&mut self) {
+		// Error if we're not in a loop
+		if let Some(to) = self.continues.pop() {
+			self.jump_to(to, JUMP);
+		} else {
+			self.error_at(self.current, "cannot use continue outside of a loop");
+		}
+
+		self.advance();
+		self.consume(TokenType::SEMICOLON, "expected a ';' after 'continue'");
 	}
 
 	fn for_statement(&mut self) {
@@ -365,16 +383,20 @@ impl Compiler {
 			}
 		}
 
+		// Jump to condition or increment
+		let loop_start = increment_start.unwrap_or(condition_start);
+		self.continues.push(loop_start);
+
 		self.statement();
 
-		// Jump to condition or increment
-		self.jump_to(increment_start.unwrap_or(condition_start), JUMP);
+		self.jump_to(loop_start, JUMP);
 
 		if let Some(exit_jump) = exit_jump {
 			self.patch_jump(exit_jump);
 			self.push_byte(POP); // Pop the condition
 		}
 
+		self.continues.pop();
 		self.end_scope();
 	}
 
