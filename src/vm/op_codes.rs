@@ -149,13 +149,15 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 		},
 		JUMP => {
 			offset+=2;
-			let index = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
-			format!("{} {:04}", "JUMP", index)
+			let offset = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
+			let index = op_offset as i16 + offset + 3;
+			format!("{} {} ({:04})", "JUMP", offset, index)
 		},
 		JUMPIFFALSE => {
 			offset+=2;
-			let index = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
-			format!("{} {:04}", "JUMPIFFALSE", index)
+			let offset = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
+			let index = op_offset as i16 + offset + 3;
+			format!("{} {} ({:04})", "JUMPIFFALSE", offset, index)
 		},
 		_ => {
 			match op {
