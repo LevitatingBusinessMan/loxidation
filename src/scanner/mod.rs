@@ -141,7 +141,7 @@ impl Scanner {
 						"super" => token!(SUPER),
 						"this" => token!(THIS),
 						"true" => token!(TRUE),
-						"var" => token!(VAR),
+						"var" | "let" => token!(VAR),
 						"const" => token!(CONST),
 						"while" => token!(WHILE),
 						"goto" => token!(GOTO),
