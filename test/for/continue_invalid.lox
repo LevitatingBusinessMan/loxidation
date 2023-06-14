@@ -1,1 +1,5 @@
+for (;;) {
+	
+}
+
 continue; // error: cannot use continue outside of a loop

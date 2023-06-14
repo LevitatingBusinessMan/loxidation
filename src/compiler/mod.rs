@@ -411,8 +411,11 @@ impl Compiler {
 		let exit_jump = self.placeholder_jump(JUMPIFFALSE);
 		self.push_byte(POP);
 		
+		self.continues.push(loop_start);
+
 		self.statement();
 		
+		self.continues.pop();
 		self.jump_to(loop_start, JUMP);
 
 		self.patch_jump(exit_jump);
