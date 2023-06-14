@@ -13,7 +13,7 @@ fn main() {
         let source = fs::read_to_string(&args[0]).unwrap();
         if let Ok(chunk) = compile(source) {
             #[cfg(debug_assertions)]
-            println!("{}", chunk.disassemble(&args[0]));
+            eprintln!("{}", chunk.disassemble(&args[0]));
             vm::interpret(chunk);
         }
     } else {

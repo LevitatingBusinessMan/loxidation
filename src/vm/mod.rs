@@ -68,7 +68,7 @@ impl VM {
 			#[cfg(debug_assertions)]
 			let (dis_str, _) = disassemble(&self.chunk, self.ip);
 			#[cfg(debug_assertions)]
-			print!("{}", dis_str);
+			eprint!("{}", dis_str);
 			
 			let instruction = read_byte!();
 			match instruction {
@@ -190,7 +190,7 @@ impl VM {
 			str.push_str(&value.to_string());
 			str.push_str(",");
 		}
-		println!("[{}]",str);
+		eprintln!("[{}]",str);
 	}
 
 }

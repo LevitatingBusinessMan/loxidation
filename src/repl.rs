@@ -12,7 +12,7 @@ pub fn repl() {
 		stdin.read_line(&mut buf).unwrap();
 		if let Ok(chunk) = compile(buf.to_string()) {
 			#[cfg(debug_assertions)]
-			println!("{}", chunk.disassemble("REPL"));
+			eprintln!("{}", chunk.disassemble("REPL"));
 			vm::interpret(chunk);
 		}
 		buf = String::new();
