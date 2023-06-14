@@ -176,6 +176,13 @@ impl Scanner {
 			'<' => if self.peek() == Some('=') {self.advance(); token!(LESS_EQUAL)} else {token!(LESS)},
 			'>' => if self.peek() == Some('=') {self.advance(); token!(GREATER_EQUAL)} else {token!(GREATER)},
 			'"' => if self.consume_till('"') {token!(STRING)} else {error!("non-terminated string")},
+			'\'' => if self.consume_till('\'') {
+				if self.current - self.start == 3 {
+					token!(CHAR)
+				} else {
+					error!("invalid char")
+				}
+			} else {error!("non-terminated char")}
 			_ => error!(format!("unknown token '{}'", character)),
 		};
 

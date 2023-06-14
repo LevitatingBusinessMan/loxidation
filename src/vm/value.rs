@@ -18,6 +18,7 @@ pub enum Value {
 	BOOL(bool),
 	NUMBER(number),
 	STRING(String),
+	CHAR(char),
 	NIL
 }
 
@@ -39,6 +40,11 @@ impl From<String> for Value {
 	}
 }
 
+impl From<char> for Value {
+	fn from(value: char) -> Value {
+		Value::CHAR(value)
+	}
+}
 
 impl From<Value> for number {
 	fn from(value: Value) -> number {
@@ -67,6 +73,15 @@ impl From<Value> for String {
 	}
 }
 
+impl From<Value> for char {
+	fn from(value: Value) -> char {
+		match value {
+			Value::CHAR(char) => char,
+			_ => unreachable!()
+		}
+	}
+}
+
 //According to https://doc.rust-lang.org/std/convert/trait.From.html
 //Should imply ToString, which implies From which implies Into (I think?)
 impl std::fmt::Display for Value {
@@ -75,6 +90,7 @@ impl std::fmt::Display for Value {
 			Value::NUMBER(number) => number.to_string(),
 			Value::BOOL(bool) => bool.to_string(),
 			Value::STRING(string) => string.clone(),
+			Value::CHAR(char) => char.to_string(),
 			Value::NIL => "nil".to_owned()
 		})
 	}
@@ -91,7 +107,7 @@ impl Value {
 
 	// Not sure if this is useful in any way
 	// Maybe for future types though
-	//For now this just works on PartialEq
+	// For now this just works on PartialEq
 	pub fn equal(&self, second: Value) -> bool {
 		self == &second
 	}

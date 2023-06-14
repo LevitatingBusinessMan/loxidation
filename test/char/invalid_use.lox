@@ -1,0 +1,1 @@
+'a' + 'b'; // error: Binary operands must both be numbers or both be strings

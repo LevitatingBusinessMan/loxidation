@@ -634,6 +634,13 @@ impl Compiler {
 		self.push_constant(value);
 	}
 
+	fn char(&mut self) {
+		// I think we can safely assume this will go right
+		let char = self.lexeme(self.previous).chars().nth(1).unwrap();
+		let value = Value::from(char);
+		self.push_constant(value);
+	}
+
 	fn variable(&mut self) {
 		self.named_variable(self.previous)
 	}

@@ -56,6 +56,7 @@ pub(super) fn get_rule(ttype: TokenType) -> ParseRule {
 		TokenType::ASTERISK | TokenType::SLASH => parse_rule!(infix => binary,Factor),
 		TokenType::NUMBER => parse_rule!(prefix => number,None),
 		TokenType::STRING => parse_rule!(prefix => string,None),
+		TokenType::CHAR => parse_rule!(prefix => char, None),
 		TokenType::NIL | TokenType::FALSE | TokenType::TRUE =>  parse_rule!(prefix => literal,None),
 		TokenType::BANG => parse_rule!(prefix => unary,None),
 		TokenType::EQUAL_EQUAL | TokenType::BANG_EQUAL => parse_rule!(infix => binary, Equality),

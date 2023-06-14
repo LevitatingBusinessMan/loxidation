@@ -5,8 +5,6 @@ In Bobs spec, redeclaring a local should result in an error.
 Redeclaring a global shouldn't.
 Currently both don't error, I think I will keep it that way.
 
-Add ' for a char type;
-
 don't create duplicate constants?
 
 look into the equality test

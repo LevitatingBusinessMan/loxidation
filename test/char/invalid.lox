@@ -1,0 +1,5 @@
+// Too long
+print 'aa'; // error: invalid char
+
+// Empty
+print ''; // error: invalid char

@@ -19,7 +19,7 @@ pub enum TokenType {
 	PIPE,// PIPE_PIPE,
   
 	// Literals.
-	IDENTIFIER, STRING, NUMBER,
+	IDENTIFIER, STRING, NUMBER, CHAR,
   
 	// Keywords.
 	AND, CLASS, ELSE, FALSE,
