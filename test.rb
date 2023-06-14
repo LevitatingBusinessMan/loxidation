@@ -77,7 +77,7 @@ def compare_errors file, output
     new_out = ""
     for line in output.lines
         # Remove front of error
-        # https://regexr.com/78ev3
+        # https://regexr.com/78p3c
         new_out << (line.gsub!(/^(((Line|Error at line) \d+( at ('.+'|EOF))?)|Error): /, '') || line)
     end
     return expect == new_out
