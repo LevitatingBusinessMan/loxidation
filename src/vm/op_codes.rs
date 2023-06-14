@@ -13,7 +13,7 @@ pub type OpCode = u8;
 /// Currently stops the process
 pub const RETURN: OpCode = 0x1;
 
-/// Push a constant onto the stack
+/// Push a constant onto the stack, takes index of constant
 pub const CONSTANT: OpCode = 0x2;
 
 /// Negate value on stack
