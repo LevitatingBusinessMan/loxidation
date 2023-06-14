@@ -12,9 +12,6 @@ struct VM {
 	chunk: Chunk,
 	ip: usize,
 	stack: Vec<Value>,
-
-	// This ideally wouldn't be an hashmap but an array.
-	// The compiler would generate the indexes for it like with locals.
 	globals: Vec<Value>,
 }
 

@@ -314,19 +314,36 @@ impl Compiler {
 				self.end_scope();
 			},
 			TokenType::IF => self.if_statement(),
-			TokenType::WHILE => self.while_(),
+			TokenType::WHILE => self.while_statement(),
+			TokenType::FOR => self.for_statement(),
 			_ => self.expression_statement()
 		}
 	}
 
-	fn while_(&mut self) {
+	fn for_statement(&mut self) {
 		self.advance();
-		let loop_start = self.chunk.code.len();
-		
-		self.consume(TokenType::LEFT_PAREN, "expected a '(' after while");
+		self.consume(TokenType::LEFT_PAREN, "expected a '(' after 'for'");
+		self.consume(TokenType::SEMICOLON, "expected a ';'");
+
+		let loop_start: usize = self.chunk.code.len();
+
+		self.consume(TokenType::SEMICOLON, "expected a ';'");
+		self.consume(TokenType::RIGHT_PAREN, "expected a ')' after for clauses");
+
+		self.statement();
+
+		let loop_jump = self.placeholder_jump(JUMP);
+		self.patch_jump_to(loop_start, loop_jump);
+	}
+
+	fn while_statement(&mut self) {
+		self.advance();
+		let loop_start: usize = self.chunk.code.len();
+
+		self.consume(TokenType::LEFT_PAREN, "expected a '(' after 'while'");
 		self.expression();
 		self.consume(TokenType::RIGHT_PAREN, "expected a ')' after condition");
-		
+
 		let exit_jump = self.placeholder_jump(JUMPIFFALSE);
 		self.push_byte(POP);
 		
