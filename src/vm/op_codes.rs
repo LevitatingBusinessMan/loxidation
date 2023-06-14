@@ -78,6 +78,9 @@ pub const JUMPIFFALSE: OpCode = 0x17;
 
 /// Jump, takes offset (in two bytes)
 pub const JUMP: OpCode = 0x18;
+
+/// Leave, takes a number of locals to pop
+pub const LEAVE: OpCode = 0x19;
 //#endregion
 
 /// Disassemble an instruction in a chunk
@@ -158,6 +161,11 @@ pub fn disassemble(chunk: &Chunk, offset: usize) -> (String, usize) {
 			let offset = (chunk.code[offset -1] as i16) << 8 | chunk.code[offset] as i16;
 			let index = op_offset as i16 + offset + 3;
 			format!("{} {} ({:04})", "JUMPIFFALSE", offset, index)
+		},
+		LEAVE => {
+			offset+=1;
+			let n = chunk.code[offset];
+			format!("{} {}", "LEAVE", n)
 		},
 		_ => {
 			match op {

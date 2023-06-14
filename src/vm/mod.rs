@@ -159,6 +159,10 @@ impl VM {
 					let offset = read_word!() as i16;
 					self.ip = (self.ip as i64 +  offset as i64) as usize;
 				},
+				LEAVE => {
+					let n = read_byte!();
+					self.stack.truncate(self.stack.len() - n as usize);
+				},
 				_ => return self.runtime_error(format!("Unknown opcode: {instruction:#x}"))
 			}
 		}

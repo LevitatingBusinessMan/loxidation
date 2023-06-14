@@ -323,17 +323,59 @@ impl Compiler {
 	fn for_statement(&mut self) {
 		self.advance();
 		self.consume(TokenType::LEFT_PAREN, "expected a '(' after 'for'");
-		self.consume(TokenType::SEMICOLON, "expected a ';'");
+		self.begin_scope();
 
-		let loop_start: usize = self.chunk.code.len();
+		// The initialization clause is either a variable decleration or an expression statement
+		match self.current.ttype {
+			TokenType::SEMICOLON => self.advance(),
+			TokenType::VAR => self.var_decleration(false),
+			// The expression statement pops the created value and consumes the semi-colon;
+			_ => self.expression_statement(),
+		}
 
-		self.consume(TokenType::SEMICOLON, "expected a ';'");
-		self.consume(TokenType::RIGHT_PAREN, "expected a ')' after for clauses");
+		let condition_start: usize = self.chunk.code.len();
+
+		let mut exit_jump = None;
+
+		// Condition clause
+		match self.current.ttype {
+			TokenType::SEMICOLON => self.advance(),
+			_ => {
+				self.expression();
+				self.consume(TokenType::SEMICOLON, "expected a ';' after for condition");
+				exit_jump = Some(self.placeholder_jump(JUMPIFFALSE));
+				self.push_byte(POP); // pop the condition
+			},
+		}
+
+		let mut increment_start = None;
+		// Increment clause
+		match self.current.ttype {
+			TokenType::RIGHT_PAREN => self.advance(),
+			_ => {
+				// Jump to the body (because increment should be run after body)
+				let body_jump = self.placeholder_jump(JUMP);
+				increment_start =  Some(self.chunk.code.len());
+				self.expression();
+				self.push_byte(POP);
+				self.consume(TokenType::RIGHT_PAREN, "expected a ')' after for clauses");
+				// Jump to condition
+				self.jump_to(condition_start, JUMP);
+				self.patch_jump(body_jump);
+			}
+		}
 
 		self.statement();
 
-		let loop_jump = self.placeholder_jump(JUMP);
-		self.patch_jump_to(loop_start, loop_jump);
+		// Jump to condition or increment
+		self.jump_to(increment_start.unwrap_or(condition_start), JUMP);
+
+		if let Some(exit_jump) = exit_jump {
+			self.patch_jump(exit_jump);
+			self.push_byte(POP); // Pop the condition
+		}
+
+		self.end_scope();
 	}
 
 	fn while_statement(&mut self) {
@@ -349,8 +391,7 @@ impl Compiler {
 		
 		self.statement();
 		
-		let loop_jump = self.placeholder_jump(JUMP);
-		self.patch_jump_to(loop_start, loop_jump);
+		self.jump_to(loop_start, JUMP);
 
 		self.patch_jump(exit_jump);
 		self.push_byte(POP);
@@ -394,11 +435,15 @@ impl Compiler {
 		self.patch_jump(jump_over_else);
 	}
 
+	fn jump_to(&mut self, to: usize, op: OpCode) {
+		let placeholder = self.placeholder_jump(op);
+		self.patch_jump_to(to, placeholder);
+	}
+
 	/// Place a jump instruction with 0xffff as the destination offset;
 	/// The index of this instruction is returned.
 	fn placeholder_jump(&mut self, op: OpCode) -> usize {
-		self.push_byte(op);
-		self.push_bytes(&[0xff,0xff]);
+		self.push_bytes(&[op, 0xff,0xff]);
 		// 1 because len and 2 because of the arguments
 		return self.chunk.code.len() - 3;
 	}
@@ -441,9 +486,8 @@ impl Compiler {
 		self.locals.retain(|local| local.depth <= scope);
 		
 		// Create a pop for each removed
-		for _ in 0..(len_before - self.locals.len()) {
-			self.push_byte(POP);
-		}
+		let localc = len_before - self.locals.len();
+		self.push_bytes(&[LEAVE, localc as u8])
 	}
 
 	fn expression_statement(&mut self) {
