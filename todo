@@ -17,3 +17,7 @@ could SETGLOBAL pop?
 
 About the precedence of bitwise ops
 https://craftinginterpreters.com/parsing-expressions.html#design-note
+
+idea:
+I go for an ownership model. And the (unary) & operator gets the clone of an Rc.
+And the + operator gets an actual clone of it.
