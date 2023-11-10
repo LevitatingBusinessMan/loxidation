@@ -5,6 +5,8 @@ So using an enum I get pretty much the same behavior, but I am using a safe type
 Memory is exactly the same, both are a union and a single byte identifier
 */
 
+use std::rc::Rc;
+
 #[allow(non_camel_case_types)]
 pub type number = f64;
 
@@ -17,7 +19,7 @@ So to keep a special struct with it and impl all kinds of methods to manage it i
 pub enum Value {
 	BOOL(bool),
 	NUMBER(number),
-	STRING(String),
+	STRING(Rc<String>),
 	CHAR(char),
 	NIL
 }
@@ -36,7 +38,7 @@ impl From<number> for Value {
 
 impl From<String> for Value {
 	fn from(value: String) -> Value {
-		Value::STRING(value)
+		Value::STRING(Rc::new(value))
 	}
 }
 
@@ -64,8 +66,8 @@ impl From<Value> for bool {
 	}
 }
 
-impl From<Value> for String {
-	fn from(value: Value) -> String {
+impl From<Value> for Rc<String> {
+	fn from(value: Value) -> Rc<String> {
 		match value {
 			Value::STRING(string) => string,
 			_ => unreachable!()
@@ -89,7 +91,7 @@ impl std::fmt::Display for Value {
 		write!(f, "{}", match self {
 			Value::NUMBER(number) => number.to_string(),
 			Value::BOOL(bool) => bool.to_string(),
-			Value::STRING(string) => string.clone(),
+			Value::STRING(string) => string.to_string(),
 			Value::CHAR(char) => char.to_string(),
 			Value::NIL => "nil".to_owned()
 		})

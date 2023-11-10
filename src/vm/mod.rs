@@ -2,6 +2,8 @@ pub mod chunk;
 pub mod op_codes;
 pub mod value;
 
+use std::rc::Rc;
+
 use self::chunk::Chunk;
 use self::op_codes::*;
 use self::value::{Value, number};
@@ -93,8 +95,8 @@ impl VM {
 				LESS => binary_op!(<),
 				ADD => {
 					if matches!(peek!(0), Value::STRING(_)) && matches!(peek!(1), Value::STRING(_)) {
-						let b = String::from(pop!());
-						let a = String::from(pop!());
+						let b = Rc::<String>::from(pop!());
+						let a = Rc::<String>::from(pop!());
 						push!(Value::from(format!("{}{}",a,b)));
 					} else {
 						binary_op!(+);
