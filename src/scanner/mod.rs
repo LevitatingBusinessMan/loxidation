@@ -101,15 +101,16 @@ impl Scanner {
 			// floats starting with a dot
 			character == '.' && self.peek().unwrap_or(' ').is_digit(10)
 			{	
+			let mut seen_dot = character == '.';
 			loop {
-				let mut seen_dot = character == '.';
 				match self.peek() {
 					Some(next) => {
-						if !next.is_digit(10) && !(!seen_dot && next == '.') {
-							return token!(NUMBER);
-						}
-						if !seen_dot && next == '.' {
-							seen_dot = true;
+						if !next.is_digit(10) {
+							if seen_dot || next != '.' {
+								return token!(NUMBER);
+							} else if !seen_dot && next == '.' {
+								seen_dot = true;
+							}
 						}
 					},
 					None => return token!(NUMBER)
